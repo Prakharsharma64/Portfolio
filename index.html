@@ -1355,10 +1355,31 @@
         }
 
         let tx = 0, ty = 0, mx = 0, my = 0;
+        let lastX = -1, lastY = -1;
         window.addEventListener('pointermove', (e) => {
           tx = e.clientX / window.innerWidth - 0.5;
           ty = e.clientY / window.innerHeight - 0.5;
+          lastX = e.clientX; lastY = e.clientY;
         }, { passive: true });
+
+        /* robot interaction: raycast picking on a window listener
+           (the canvas is pointer-events: none and must stay that way) */
+        const ray = new THREE.Raycaster();
+        const ndc = new THREE.Vector2();
+        const botMeshes = [];
+        bot.traverse((o) => { if (o.isMesh) botMeshes.push(o); });
+        let nearBot = false, hoverBot = false, pokeT = -1;
+        let botYaw = 0, botPitch = 0, eyeShiftX = 0, eyeShiftY = 0;
+
+        function hitsBot(cx, cy) {
+          ndc.set((cx / window.innerWidth) * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
+          ray.setFromCamera(ndc, camera);
+          return ray.intersectObjects(botMeshes, false).length > 0;
+        }
+        window.addEventListener('pointerdown', (e) => {
+          if (!nearBot || pokeT >= 0) return;
+          if (hitsBot(e.clientX, e.clientY)) pokeT = clock.getElapsedTime();
+        });
 
         function size() {
           renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1403,11 +1424,42 @@
           });
           dlq.rotation.z = t * 0.5;
 
-          bot.position.y = Math.sin(t * 1.1) * 0.25;
-          bot.rotation.y = Math.sin(t * 0.4) * 0.3;
+          /* robot: idle sway, pointer tracking near the skills station, poke reaction */
+          const seg3 = u * (W.length - 1);
+          nearBot = seg3 > 1.9 && seg3 < 3.4;
+          const idleYaw = Math.sin(t * 0.4) * 0.3;
+          botYaw += ((nearBot ? idleYaw + tx * 0.6 : idleYaw) - botYaw) * 0.06;
+          botPitch += ((nearBot ? -ty * 0.35 : 0) - botPitch) * 0.06;
+          eyeShiftX += ((nearBot ? tx * 0.12 : 0) - eyeShiftX) * 0.08;
+          eyeShiftY += ((nearBot ? -ty * 0.12 : 0) - eyeShiftY) * 0.08;
+
+          let spin = 0, squash = 1, tipBoost = 0, bobAmp = 0.25;
+          if (pokeT >= 0) {
+            const p = Math.min((t - pokeT) / 0.7, 1);
+            const bump = Math.sin(p * Math.PI);
+            spin = (1 - Math.pow(1 - p, 3)) * Math.PI * 2;
+            squash = 1 - bump * 0.85;
+            tipBoost = bump;
+            bobAmp = 0.25 * (1 + bump);
+            if (p >= 1) pokeT = -1;
+          }
+          bot.position.y = Math.sin(t * 1.1) * bobAmp;
+          bot.rotation.y = botYaw + spin;
+          bot.rotation.x = botPitch;
+          eyeL.position.set(-0.48 + eyeShiftX, 0.12 + eyeShiftY, 0.88);
+          eyeR.position.set(0.48 + eyeShiftX, 0.12 + eyeShiftY, 0.88);
+          eyeL.scale.y = squash;
+          eyeR.scale.y = squash;
           const blink = (Math.sin(t * 2.2) + 1) / 2;
-          tip.scale.setScalar(0.8 + blink * 0.5);
+          const tipBase = 0.8 + blink * 0.5;
+          tip.scale.setScalar(tipBase + (1.8 - tipBase) * tipBoost);
           orbits.forEach((o, i) => { o.rotation.y = t * (0.25 + i * 0.1); });
+
+          const overBot = nearBot && lastX >= 0 && hitsBot(lastX, lastY);
+          if (overBot !== hoverBot) {
+            hoverBot = overBot;
+            document.body.style.cursor = overBot ? 'pointer' : '';
+          }
 
           rings.forEach((r, i) => {
             const ph = (t * 0.45 + i / 3) % 1;
