@@ -1,13 +1,10 @@
 # Prakhar Sharma — Portfolio
 
-Single-file portfolio site (GitHub Pages ready). Everything lives in `index.html`:
-inline CSS, anime.js choreography, and a Three.js "5-station world" driven by scroll.
+Static portfolio site (GitHub Pages ready, no build step). `index.html` holds the
+markup; styles and per-feature scripts live under `assets/css/` and `assets/js/`:
+anime.js choreography and a Three.js "5-station world" driven by scroll.
 
 ## Preview locally
-
-Option 1: just double-click `index.html` (needs internet for fonts + CDN libraries).
-
-Option 2 (recommended while editing):
 
 ```bash
 python -m http.server 8000
@@ -16,7 +13,9 @@ python -m http.server 8000
 
 ## Structure
 
-- `index.html` — the whole site (markup, styles, scripts)
+- `index.html` — markup
+- `assets/css/main.css` — all styles
+- `assets/js/` — one small file per feature (reveals, rail, terminal, world)
 - `assets/resume.pdf` — linked by the Resume buttons
 - `assets/icons/favicon.ico` — tab icon
 

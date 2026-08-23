@@ -1,8 +1,10 @@
 # Portfolio project - Claude Code instructions
 
-Single-file portfolio for Prakhar Sharma, AI Engineer. The entire site is `index.html`:
-inline CSS, anime.js (UMD via cdnjs), and Three.js (ES module via cdnjs) rendering a
-five-station 3D world driven by scroll.
+Portfolio for Prakhar Sharma, AI Engineer. Static site, no build step, no npm:
+`index.html` (markup only) plus small per-feature files under `assets/css/` and
+`assets/js/`. anime.js (UMD via cdnjs) and Three.js (ES module via cdnjs) render a
+five-station 3D world driven by scroll. Each feature lives in its own JS file;
+keep it that way instead of growing any one file.
 
 ## Design skills - use them
 
@@ -31,18 +33,24 @@ read and follow them:
 - WCAG AA contrast minimum. Visible focus rings (amber). Keyboard operable.
 - Canvas stays `pointer-events: none` EXCEPT where a feature needs picking - then use
   a raycaster on a separate listener, never block text/link clicks.
-- Single file. No build step. No npm. Libraries only from cdnjs.
+- No build step. No npm. Libraries only from cdnjs. Plain `<script src>` / `<link>`
+  tags; one small file per feature under `assets/js/`.
 
-## Code map (inside index.html)
+## Code map
 
-- Loader: `#loader` + classic script (anime timeline, exits on window load, 2.6s cap)
-- Reveals + progress bar + h2 underlines: classic script, IntersectionObserver + rAF
-- 3D world: `<script type="module">` at the bottom
+- `index.html` - markup only, plus two tiny inline scripts (gtag, js-loading class)
+- `assets/css/main.css` - all styles
+- `assets/js/reveals.js` - loader (anime timeline, exits on window load, 2.6s cap),
+  reveals, progress bar, h2 underlines (IntersectionObserver + rAF)
+- `assets/js/rail.js` - `window.scrollParam()` (the section-anchor scroll mapping,
+  shared source of truth) + the station dot rail
+- `assets/js/terminal.js` - the terminal easter egg (`#term`, backquote toggle)
+- `assets/js/world.js` - the 3D world (ES module)
   - `W[]` - five station anchor positions (hero, work, experience, skills, contact)
   - `s0..s4` - station groups: particle field / pipeline / job queue / robot / beacon
   - Robot parts: `bot`, `head`, `eyeL`, `eyeR`, `antenna`, `tip`, `torso`, `orbits[]`
-  - Camera: CatmullRomCurve3 through `W[i] + camOffset`; `scrollParam()` maps scroll
-    position to curve parameter via section anchors; `smooth()` eases arrivals
+  - Camera: CatmullRomCurve3 through `W[i] + camOffset`; uses `window.scrollParam()`;
+    `smooth()` eases arrivals; robot poke raycaster on a window listener
 - SVG diagram: `.diagram` in the hero; boxes `.d-box`, flow `.d-flow`, pulse `.d-pulse`
 
 ## Verification loop
