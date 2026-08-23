@@ -55,7 +55,8 @@ document.addEventListener('DOMContentLoaded', function () {
       }, '-=400');
 
     // the pulse: one request travelling the pipeline, forever
-    anime({
+    // (pipeline.js pauses it while a simulated run plays)
+    window.pulseAnim = anime({
       targets: '.d-pulse',
       translateY: [0, 316],
       opacity: [

@@ -287,6 +287,85 @@ h1 em {
   fill: var(--amber);
 }
 
+/* simulated dispatch run */
+.diagram__run {
+  display: block;
+  margin: 16px auto 0;
+  font-size: .88rem;
+  padding: 8px 14px;
+}
+
+.btn:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+.diagram__log {
+  margin-top: 14px;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 10px;
+  font-family: var(--mono);
+  font-size: .8rem;
+  line-height: 1.7;
+  text-align: left;
+}
+
+.diagram__log-head {
+  color: #7A808A;
+}
+
+.diagram__log-line {
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity .3s;
+}
+
+.diagram__log-line.in {
+  opacity: 1;
+}
+
+.d-box.lit {
+  stroke: var(--amber);
+}
+
+@keyframes boxsweep {
+  from {
+    stroke-dasharray: 512;
+    stroke-dashoffset: 512;
+  }
+
+  to {
+    stroke-dasharray: 512;
+    stroke-dashoffset: 0;
+  }
+}
+
+.d-box.sweep {
+  animation: boxsweep .45s ease-out;
+}
+
+@keyframes boundarypulse {
+  50% {
+    stroke-width: 2.5;
+    opacity: .45;
+  }
+}
+
+.d-boundary.pulse {
+  animation: boundarypulse .6s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .diagram__log-line,
+  .d-box.sweep,
+  .d-boundary.pulse {
+    transition: none;
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* persistent 3D world behind the whole page */
 #world {
   position: fixed;
@@ -868,6 +947,10 @@ footer {
 
   .diagram__caption {
     text-align: left;
+  }
+
+  .diagram__run {
+    margin-left: 0;
   }
 
   .more__grid {

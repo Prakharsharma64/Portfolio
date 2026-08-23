@@ -113,6 +113,11 @@
             Real architecture from the mail agent I shipped: the LLM writes a contract.
             A deterministic scheduler sends the email.
           </figcaption>
+          <button class="btn btn--ghost diagram__run" id="run-sim" type="button">Run a simulated dispatch</button>
+          <div class="diagram__log" id="sim-log" hidden>
+            <p class="diagram__log-head">simulated run</p>
+            <div id="sim-log-lines" aria-live="polite"></div>
+          </div>
         </figure>
       </div>
     </div>
@@ -291,6 +296,7 @@
 
   <script src="./assets/js/rail.js"></script>
   <script src="./assets/js/terminal.js"></script>
+  <script src="./assets/js/pipeline.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js" defer></script>
   <script src="./assets/js/reveals.js"></script>
