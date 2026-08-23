@@ -743,6 +743,58 @@ h2 {
   gap: 22px;
 }
 
+/* ask my portfolio */
+.ask {
+  margin-top: 48px;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 28px;
+}
+
+.ask__label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.ask__tag {
+  font-family: var(--mono);
+  font-size: .78rem;
+  font-weight: 400;
+  color: #7A808A;
+  margin-left: 10px;
+}
+
+.ask__form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#ask-in {
+  flex: 1;
+  min-width: 220px;
+  background: var(--raise);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--text);
+  font: inherit;
+  caret-color: var(--amber);
+}
+
+#ask-in::placeholder {
+  color: #7A808A;
+}
+
+.ask__out {
+  margin-top: 14px;
+  color: var(--muted);
+}
+
+.ask__out:empty {
+  display: none;
+}
+
 footer {
   border-top: 1px solid var(--line-soft);
   padding: 26px 0;

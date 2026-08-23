@@ -273,6 +273,18 @@
             rel="noopener">LinkedIn</a>
           <a class="link" href="https://wa.me/918755887760" target="_blank" rel="noopener">WhatsApp</a>
         </div>
+
+        <div class="ask">
+          <label class="ask__label" for="ask-in">Ask my portfolio
+            <span class="ask__tag">keyword search, no LLM - I right-size architectures</span>
+          </label>
+          <form class="ask__form" id="ask-form">
+            <input id="ask-in" type="text" autocomplete="off" spellcheck="false"
+              placeholder="e.g. how do you stop hallucinations?" />
+            <button class="btn btn--ghost" type="submit">Search</button>
+          </form>
+          <div id="ask-out" class="ask__out" aria-live="polite"></div>
+        </div>
       </div>
     </section>
   </main>
@@ -315,6 +327,7 @@
   <script src="./assets/js/pipeline.js"></script>
   <script src="./assets/js/palette.js"></script>
   <script src="./assets/js/heartbeat.js"></script>
+  <script src="./assets/js/ask.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js" defer></script>
   <script src="./assets/js/reveals.js"></script>
