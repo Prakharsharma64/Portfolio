@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var hasAnime = typeof anime !== 'undefined';
+  try { reduce = reduce || localStorage.getItem('motion-off') === '1'; } catch (e) { }
 
   function clearLoader() {
     document.documentElement.classList.remove('js-loading');
@@ -106,7 +107,9 @@ document.addEventListener('DOMContentLoaded', function () {
   var pb = document.getElementById('progress');
   var diagram = document.querySelector('.diagram');
   var hero = document.querySelector('.hero');
+  var uiDead = false;
   (function uiTick() {
+    if (uiDead) return;
     requestAnimationFrame(uiTick);
     if (document.hidden) return;
     var doc = document.documentElement;
@@ -117,4 +120,16 @@ document.addEventListener('DOMContentLoaded', function () {
       diagram.style.transform = 'translateY(' + (window.scrollY * 0.08) + 'px)';
     }
   })();
+
+  /* palette's motion toggle: stop everything, show everything, like reduced motion */
+  window.killReveals = function () {
+    uiDead = true;
+    io.disconnect();
+    h2io.disconnect();
+    anime.set(targets, { opacity: 1, translateY: 0 });
+    document.querySelectorAll('h2').forEach(function (h) { h.classList.add('seen'); });
+    if (window.pulseAnim) window.pulseAnim.pause();
+    pb.style.transform = '';
+    if (diagram) diagram.style.transform = '';
+  };
 });

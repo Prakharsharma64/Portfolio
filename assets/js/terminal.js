@@ -47,6 +47,8 @@
   }
 
   function closeTerm() {
+    if (term.hidden) return;
+    input.blur();
     term.hidden = true;
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }

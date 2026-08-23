@@ -1,5 +1,7 @@
 /* three.js as ES module. One persistent world, five stations, camera on a spline. */
-if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+let motionOff = false;
+try { motionOff = localStorage.getItem('motion-off') === '1'; } catch (e) { }
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff) {
   try {
     const THREE = await import('https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.min.js');
 
@@ -243,7 +245,16 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const camPos = new THREE.Vector3();
     const clock = new THREE.Clock();
 
+    /* palette's motion toggle: stop the loop and drop the canvas */
+    let dead = false;
+    window.killWorld = () => {
+      dead = true;
+      renderer.domElement.remove();
+      document.body.style.cursor = '';
+    };
+
     (function tick() {
+      if (dead) return;
       requestAnimationFrame(tick);
       if (document.hidden) return;
       const t = clock.getElapsedTime();

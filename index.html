@@ -33,9 +33,13 @@
     </div>
   </div>
   <script>
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      document.documentElement.classList.add('js-loading');
-    }
+    (function () {
+      var off = false;
+      try { off = localStorage.getItem('motion-off') === '1'; } catch (e) { }
+      if (!off && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('js-loading');
+      }
+    })();
   </script>
   <div id="progress" aria-hidden="true"></div>
   <div id="world" aria-hidden="true"></div>
@@ -60,6 +64,7 @@
         <a href="#experience">Experience</a>
         <a href="#skills">Skills</a>
         <a href="#contact">Contact</a>
+        <button class="nav__kbd" id="pal-open" type="button" aria-label="Open command palette (Ctrl+K)">⌘K</button>
         <a class="btn btn--ghost" href="./assets/resume.pdf" download>Resume</a>
       </nav>
     </div>
@@ -285,6 +290,14 @@
     </div>
   </footer>
 
+  <div id="pal" role="dialog" aria-label="Command palette" hidden>
+    <div class="pal__panel">
+      <input id="pal-in" type="text" placeholder="Type a command" aria-label="Filter commands" autocomplete="off"
+        spellcheck="false" role="combobox" aria-expanded="true" aria-controls="pal-list" />
+      <ul id="pal-list" role="listbox" aria-label="Commands"></ul>
+    </div>
+  </div>
+
   <div id="term" role="dialog" aria-label="Terminal" hidden>
     <div id="term-out" aria-live="polite"></div>
     <div class="term-line">
@@ -297,6 +310,7 @@
   <script src="./assets/js/rail.js"></script>
   <script src="./assets/js/terminal.js"></script>
   <script src="./assets/js/pipeline.js"></script>
+  <script src="./assets/js/palette.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js" defer></script>
   <script src="./assets/js/reveals.js"></script>
