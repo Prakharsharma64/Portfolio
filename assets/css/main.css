@@ -1013,6 +1013,17 @@ footer {
   color: #9AA0A9;
 }
 
+.foot__beat {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: .8rem;
+}
+
+.foot__beat:empty {
+  display: none;
+}
+
 /* ============ responsive ============ */
 @media (max-width: 860px) {
   .hero__grid,
