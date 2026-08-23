@@ -1,0 +1,9 @@
+.claude/
+
+# git artifacts
+*.orig
+*.rej
+*.BACKUP.*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*

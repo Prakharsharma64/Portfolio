@@ -66,6 +66,11 @@ one more round.
 Never invent metrics, projects, or claims. Real facts only: they live in README.md
 and the copy already on the page. Simulated demos must be labeled simulated.
 
+## Git
+
+No Claude co-author trailers or "Generated with Claude" lines in commit
+messages or PR bodies. Ever.
+
 ## Publish
 
 Push `index.html` + `assets/` to `main` of `github.com/Prakharsharma64/Portfolio`
