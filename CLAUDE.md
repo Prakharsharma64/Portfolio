@@ -73,6 +73,8 @@ read and follow them:
 - `assets/js/work.js` - Work section life: traveling pulse on each feature diagram
   (IntersectionObserver pauses off-screen), amber breathing on `#work .d-box--llm`,
   one-shot width-locked count-up on `.stats__n`; `window.killWork` for the motion toggle
+- `assets/js/taps.js` - tap feedback: expanding amber ring on activated links and
+  buttons (keyboard activations ring from the control's center); `window.killTaps`
 - `assets/js/ask.js` - "Ask my portfolio": two deterministic engines, no LLM; every
   answer restates copy already on the page. Engine 1: precomputed MiniLM word vectors
   (`assets/data/ask-index.json`, lazy-fetched on first input focus) scored as
@@ -94,7 +96,8 @@ read and follow them:
     rendered frame dispatches `world-ready` (reveals.js holds the loader for it)
   - Hero field extras: static kNN threads between cloud points (`links`), and on
     hover devices a query probe (`qGroup`) that follows the cursor with live
-    nearest-neighbor threads + retrieval sparks streaming along them; entrance
+    nearest-neighbor threads + retrieval sparks streaming along them; clicking
+    empty hero space "commits the query" (`qRing` ping + thread flash); entrance
     convergence + camera dolly on first load (skipped if the page loads scrolled);
     stations speed up on camera arrival via `prox()` + accumulated phases; camera
     banks through turns and leads mid-leg
@@ -118,8 +121,8 @@ read and follow them:
 
 - `scrollParam` (rail.js) -> world.js camera; the shared scroll mapping
 - `pulseAnim` (reveals.js) -> pipeline.js pauses/plays it during a simulated run
-- `killReveals` (reveals.js), `killWorld` (world.js), `killWork` (work.js) ->
-  palette.js motion toggle
+- `killReveals` (reveals.js), `killWorld` (world.js), `killWork` (work.js),
+  `killTaps` (taps.js) -> palette.js motion toggle
 - `closePalette` (palette.js) <-> `closeTerminal` / `openTerminal` (terminal.js) -
   mutual exclusion between the two overlays; every consumer guards with `if (window.X)`
 

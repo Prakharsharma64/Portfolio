@@ -121,7 +121,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     /* the cursor as a query vector: amber probe + threads to its nearest
        neighbors (hover devices only; touch has no pointer to track) */
     const Q_K = 5;
-    let qGroup = null, qDot = null, qLines = null, qLinePos = null, qSparks = null;
+    let qGroup = null, qDot = null, qLines = null, qLinePos = null, qSparks = null, qRing = null;
     const qBestD = new Float64Array(Q_K), qBestI = new Int32Array(Q_K);
     if (window.matchMedia('(hover: hover)').matches) {
       qGroup = new THREE.Group();
@@ -132,6 +132,15 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       qLines = new THREE.LineSegments(qGeo,
         new THREE.LineBasicMaterial({ color: AMBER, transparent: true, opacity: 0.4 }));
       qGroup.add(qDot, qLines);
+      /* click ping: "committing the query" fires a ring from the probe */
+      qRing = new THREE.LineLoop(
+        new THREE.BufferGeometry().setFromPoints(
+          new THREE.EllipseCurve(0, 0, 1, 1, 0, Math.PI * 2).getPoints(48)
+            .map(p => new THREE.Vector3(p.x, p.y, 0))
+        ),
+        new THREE.LineBasicMaterial({ color: AMBER, transparent: true, opacity: 0 })
+      );
+      qGroup.add(qRing);
       qSparks = [];
       for (let k = 0; k < Q_K; k++) {
         const sp = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 6), amberMat);
@@ -344,6 +353,8 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       return ray.intersectObjects(botMeshes, false).length > 0;
     }
     window.addEventListener('pointerdown', (e) => {
+      const onControl = e.target.closest && e.target.closest('a, button, input, textarea, label');
+      if (qGroup && qGroup.visible && !onControl) qPingT = clock.getElapsedTime();
       if (!nearBot || pokeT >= 0) return;
       if (hitsBot(e.clientX, e.clientY)) pokeT = clock.getElapsedTime();
     });
@@ -365,7 +376,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     const clock = new THREE.Clock();
     let roll = 0, entranceZ = 0, lastT = 0, frameN = 0;
     let pulsePhase = 0, jobPhase = 0, orbitPhase = 0, ringPhase = 0;
-    let rejStart = -1, nextReject = 2;
+    let rejStart = -1, nextReject = 2, qPingT = -1;
     const rejV = new THREE.Vector3();
     const entrance = { active: false, start: -1, dur: 1.6 };
 
@@ -534,6 +545,22 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
                 qLinePos[o] + (qLinePos[o + 3] - qLinePos[o]) * ph,
                 qLinePos[o + 1] + (qLinePos[o + 4] - qLinePos[o + 1]) * ph,
                 qLinePos[o + 2] + (qLinePos[o + 5] - qLinePos[o + 2]) * ph);
+            }
+            /* click ping: ring out from the probe, threads flash and decay */
+            if (qPingT >= 0) {
+              const pp = (t - qPingT) / 0.7;
+              if (pp >= 1) {
+                qPingT = -1;
+                qRing.material.opacity = 0;
+                qLines.material.opacity = 0.4;
+                qDot.scale.setScalar(1);
+              } else {
+                qRing.position.copy(qDot.position);
+                qRing.scale.setScalar(0.3 + pp * 1.9);
+                qRing.material.opacity = 0.6 * (1 - pp);
+                qLines.material.opacity = 0.4 + 0.5 * (1 - pp);
+                qDot.scale.setScalar(1 + Math.sin(Math.min(pp * 2, 1) * Math.PI) * 0.8);
+              }
             }
           }
         }
