@@ -75,6 +75,8 @@
       ['help            this list',
         'projects        shipped work, with GitHub links',
         'stack           what I build with',
+        'guardrails      how the LLMs are kept honest',
+        'ask <question>  search the page facts',
         'contact         email, LinkedIn, WhatsApp',
         'resume          download the PDF',
         'whoami          one line',
@@ -99,6 +101,21 @@
       print('downloading resume.pdf');
     } else if (cmd === 'whoami') {
       print('AI Engineer at The Odin. I make LLMs behave in production.');
+    } else if (cmd === 'guardrails') {
+      ['post-LLM grounding validator: figures must match the retrieval layer',
+        'the LLM writes a versioned contract; a deterministic scheduler sends',
+        'per-run idempotency keys, classified retries',
+        'dead-letter queues for failed LLM jobs',
+        'transactional outbox, webhook idempotency guards',
+        'versioned system prompts and prompt templates'].forEach(function (l) { print(l); });
+    } else if (cmd.indexOf('ask ') === 0) {
+      if (window.askPortfolio) {
+        var r = window.askPortfolio(raw.replace(/^ask\s+/i, ''));
+        print(r.text);
+        if (r.meta) print(r.meta);
+      } else {
+        print('ask is not loaded');
+      }
     } else if (cmd.indexOf('fly ') === 0) {
       fly(cmd.slice(4).trim());
     } else if (cmd === 'clear') {

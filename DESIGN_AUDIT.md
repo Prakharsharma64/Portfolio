@@ -228,3 +228,44 @@ page fully readable with JS or CDN blocked; 31-stop focus walk all amber 2px out
 3. World-geometry offsets (Phase 1) with the screenshot verification loop.
 4. Reduced-motion scroll gating; mobile nav row; hero log min-height.
 5. Phase 2 token work, then Phase 3 polish.
+
+---
+
+# Part 3 - Innovation pass - 2026-09-09 (implemented same day)
+
+Brief: "more innovative, more AI/software positioning." Audited with the design-audit
+skill against the live site (Playwright screenshots, desktop 1440 + mobile 390), then
+implemented in full. Verified: fresh screenshot pass at both widths, zero console
+errors, reduced-motion render (loader off, no canvas, all content visible), impeccable
+detector (2 warnings, both the committed Instrument Sans body face - accepted).
+
+Shipped:
+
+1. Station framing fixed with a screenshot loop. New offsets: s1 (-7, -2.5, -6) puts
+   the pipeline in the divider band between the two featured projects; s3 (6.5, 0.5, -9)
+   puts the full robot in the right gutter beside the skills card; s4 (4.5, -0.5, -2)
+   un-clips the beacon. Dust field along the whole camera spline kills the blank
+   frames between stations. Mobile dims #world to 0.45 past the hero.
+2. Share metadata: og:/twitter: set + rendered assets/og-card.png (1200x630, design
+   tokens) + canonical + JSON-LD Person. A LinkedIn share now unfurls properly.
+3. The hero's diagram language now extends down the page: per-project mini
+   architecture SVGs (same d-box/d-flow classes) for Dharwin and Religence, and the
+   Dharwin facts line became a three-number stat row (plain layout, no cards).
+4. Skills rebuilt as a skills.yaml file artifact (mono as data, amber keys, real h3s
+   with aria-labels for clean SR names).
+5. Discoverability: hero hint line (terminal / palette / dispatch sim), dispatch
+   button promoted to amber outline, "Open terminal" added to the palette, GitHub
+   heartbeat surfaced as a live chip beside the Work heading.
+6. "Ask my portfolio" engine 1: precomputed MiniLM word vectors (offline generator
+   in tools/, 72KB quantized JSON, lazy-fetched on focus), soft keyword scoring in
+   ~40 lines of browser JS, honest engine meta line under every answer, keyword
+   overlap kept as instant fallback. cdnjs-only rule honored: no runtime model, no
+   new library.
+7. Terminal: guardrails + ask commands. 404.html as a dead-letter queue. llms.txt
+   for LLM crawlers. Hero h1 decode-in (width-locked, aria-label pinned, motion-gated).
+   Loader now waits for the world's first rendered frame (grace 1.8s, hard cap 2.6s
+   unchanged).
+
+Lesson for future passes: the cdnjs-only + no-npm rails reshape AI features - the
+answer was to move the model offline and ship vectors as a static asset, which is
+also the more on-brand engineering story ("deterministic at runtime").

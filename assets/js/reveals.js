@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ============ hidden initial states ============ */
-  anime.set(['.hero h1', '.hero__sub', '.hero__cta'], { opacity: 0, translateY: 16 });
+  anime.set(['.hero h1', '.hero__sub', '.hero__cta', '.hero__hint'], { opacity: 0, translateY: 16 });
   anime.set('.diagram', { opacity: 0 });
   document.querySelectorAll('.d-flow').forEach(function (p) {
     var l = p.getTotalLength();
@@ -26,6 +26,38 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ============ branded preloader: bar tracks real page load ============ */
   var bar = document.querySelector('.loader__bar');
   var loaderDone = false;
+
+  /* the amber word settles out of raw glyphs; width is locked first so the
+     headline never reflows, and the h1's accessible name never changes */
+  function decodeWord() {
+    var h1 = document.querySelector('.hero h1');
+    var em = h1 && h1.querySelector('em');
+    if (!em) return;
+    h1.setAttribute('aria-label', h1.textContent);
+    var word = em.textContent;
+    var glyphs = '<>[]{}#$%&*+=/\\|~^';
+    em.style.display = 'inline-block';
+    em.style.width = em.offsetWidth + 'px';
+    var start = null;
+    var DUR = 620;
+    requestAnimationFrame(function scramble(ts) {
+      if (start === null) start = ts;
+      var p = (ts - start) / DUR;
+      if (p >= 1) {
+        em.textContent = word;
+        em.style.width = '';
+        em.style.display = '';
+        return;
+      }
+      var settled = Math.floor(p * word.length);
+      var s = word.slice(0, settled);
+      for (var i = settled; i < word.length; i++) {
+        s += glyphs[Math.floor(Math.random() * glyphs.length)];
+      }
+      em.textContent = s;
+      requestAnimationFrame(scramble);
+    });
+  }
 
   // creep while assets genuinely load
   var creep = anime({
@@ -46,9 +78,13 @@ document.addEventListener('DOMContentLoaded', function () {
           clearLoader();
         }
       }, '+=80')
-      .add({ targets: '.hero h1', opacity: [0, 1], translateY: [16, 0], duration: 700, easing: 'cubicBezier(.16,1,.3,1)' }, '-=250')
+      .add({
+        targets: '.hero h1', opacity: [0, 1], translateY: [16, 0], duration: 700,
+        easing: 'cubicBezier(.16,1,.3,1)', begin: decodeWord
+      }, '-=250')
       .add({ targets: '.hero__sub', opacity: [0, 1], translateY: [16, 0], duration: 600, easing: 'cubicBezier(.16,1,.3,1)' }, '-=520')
       .add({ targets: '.hero__cta', opacity: [0, 1], translateY: [16, 0], duration: 600, easing: 'cubicBezier(.16,1,.3,1)' }, '-=460')
+      .add({ targets: '.hero__hint', opacity: [0, 1], translateY: [16, 0], duration: 600, easing: 'cubicBezier(.16,1,.3,1)' }, '-=420')
       .add({ targets: '.diagram', opacity: [0, 1], duration: 700, easing: 'easeOutQuad' }, '-=350')
       .add({
         targets: '.d-flow', strokeDashoffset: 0, duration: 700,
@@ -72,13 +108,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  if (document.readyState === 'complete') { exitLoader(); }
-  else { window.addEventListener('load', exitLoader); }
+  /* the bar completes when the page has genuinely loaded AND the 3D world has
+     rendered its first frame; a blocked CDN or slow GPU only ever costs the
+     grace period, and the hard cap below never moves */
+  var pageLoaded = document.readyState === 'complete';
+  var worldReady = false;
+  function maybeExit() { if (pageLoaded && worldReady) exitLoader(); }
+  window.addEventListener('load', function () { pageLoaded = true; maybeExit(); });
+  window.addEventListener('world-ready', function () { worldReady = true; maybeExit(); }, { once: true });
+  setTimeout(function () { worldReady = true; maybeExit(); }, 1800); // world may be absent
   setTimeout(exitLoader, 2600); // never hold the page hostage
+  maybeExit();
 
   /* ============ scroll reveals, once per element ============ */
   var targets = document.querySelectorAll(
-    '.feature, .more__grid article, .xp__meta, .xp__body p, .skills__row, .contact__inner'
+    '.feature, .more__grid article, .xp__meta, .xp__body p, .skillsfile, .contact__inner'
   );
   targets.forEach(function (el) { el.classList.add('reveal-target'); });
   anime.set(targets, { opacity: 0, translateY: 18 });

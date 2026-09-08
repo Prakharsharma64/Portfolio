@@ -7,6 +7,20 @@
   <title>Prakhar Sharma, AI Engineer</title>
   <meta name="description"
     content="AI Engineer building production LLM systems: RAG pipelines, autonomous voice agents, and deterministic schedulers wrapped in guardrails." />
+  <link rel="canonical" href="https://prakharsharma64.github.io/Portfolio/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Prakhar Sharma, AI Engineer" />
+  <meta property="og:description"
+    content="I make LLMs behave in production. RAG pipelines, autonomous voice agents, and deterministic schedulers wrapped in guardrails." />
+  <meta property="og:url" content="https://prakharsharma64.github.io/Portfolio/" />
+  <meta property="og:image" content="https://prakharsharma64.github.io/Portfolio/assets/og-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Prakhar Sharma, AI Engineer" />
+  <meta name="twitter:description"
+    content="I make LLMs behave in production. RAG pipelines, autonomous voice agents, and deterministic schedulers wrapped in guardrails." />
+  <meta name="twitter:image" content="https://prakharsharma64.github.io/Portfolio/assets/og-card.png" />
   <link rel="icon" type="image/x-icon" href="./assets/icons/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,6 +28,23 @@
     href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="./assets/css/main.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Prakhar Sharma",
+    "jobTitle": "AI Engineer",
+    "worksFor": { "@type": "Organization", "name": "The Odin" },
+    "address": { "@type": "PostalAddress", "addressLocality": "Jaipur", "addressCountry": "IN" },
+    "email": "mailto:sharmaprakhar00o07@gmail.com",
+    "url": "https://prakharsharma64.github.io/Portfolio/",
+    "sameAs": [
+      "https://github.com/Prakhartheodin",
+      "https://github.com/Prakharsharma64",
+      "https://www.linkedin.com/in/prakhar-sharma-42584723a/"
+    ]
+  }
+  </script>
 </head>
 
 <body>
@@ -80,6 +111,7 @@
             <a class="btn" href="#work">See the work</a>
             <a class="link" href="https://github.com/Prakhartheodin" target="_blank" rel="noopener">GitHub</a>
           </div>
+          <p class="hero__hint">this page runs: terminal (ctrl `) &middot; palette (ctrl k) &middot; dispatch sim</p>
         </div>
 
         <figure class="diagram" aria-labelledby="diagram-caption">
@@ -125,13 +157,32 @@
     <!-- WORK -->
     <section id="work">
       <div class="wrap">
-        <h2>Selected work</h2>
+        <div class="sect-head">
+          <h2>Selected work</h2>
+          <span id="heartbeat-work" class="beat-chip"></span>
+        </div>
 
         <article class="feature">
           <div>
             <h3><a href="https://github.com/Developerodin/dharwinone_backend" target="_blank"
                 rel="noopener">Dharwin</a></h3>
             <p class="kind">AI-powered ATS/HRM SaaS, in production</p>
+            <figure class="feature__diagram">
+              <svg viewBox="0 0 240 212" role="img"
+                aria-label="Dharwin screening flow: voice agent calls, webhook lifecycle, schema extract, ATS write-back">
+                <path class="d-flow" d="M120 40 v16" />
+                <path class="d-flow" d="M120 96 v16" />
+                <path class="d-flow" d="M120 152 v16" />
+                <rect class="d-box d-box--llm" x="30" y="10" width="180" height="30" rx="5" />
+                <text class="d-label" x="120" y="29" text-anchor="middle">voice agent calls</text>
+                <rect class="d-box" x="30" y="66" width="180" height="30" rx="5" />
+                <text class="d-label" x="120" y="85" text-anchor="middle">webhook lifecycle</text>
+                <rect class="d-box d-box--llm" x="30" y="122" width="180" height="30" rx="5" />
+                <text class="d-label" x="120" y="141" text-anchor="middle">schema extract</text>
+                <rect class="d-box" x="30" y="178" width="180" height="30" rx="5" />
+                <text class="d-label" x="120" y="197" text-anchor="middle">ATS write-back</text>
+              </svg>
+            </figure>
           </div>
           <div class="feature__body">
             <p>
@@ -140,7 +191,11 @@
               grounded-count validation, and <strong>autonomous voice agents</strong> call candidates,
               run screening interviews, and write structured results back into the ATS.
             </p>
-            <p class="facts">99 data models, 77 REST modules, 1,200+ commits in six months</p>
+            <ul class="stats">
+              <li><span class="stats__n">99</span><span class="stats__l">data models</span></li>
+              <li><span class="stats__n">77</span><span class="stats__l">REST modules</span></li>
+              <li><span class="stats__n">1,200+</span><span class="stats__l">commits in six months</span></li>
+            </ul>
             <p class="stack">Node.js, Express, MongoDB, Next.js, Pinecone, Bolna, Docker</p>
           </div>
         </article>
@@ -150,6 +205,22 @@
             <h3><a href="https://github.com/Prakhartheodin/religence-backend" target="_blank"
                 rel="noopener">Religence</a></h3>
             <p class="kind">Pharma lead discovery and CRM</p>
+            <figure class="feature__diagram">
+              <svg viewBox="0 0 240 212" role="img"
+                aria-label="Religence lead flow: FastAPI crawler, LLM classifier, verification queue, CRM with Outlook inbox">
+                <path class="d-flow" d="M120 40 v16" />
+                <path class="d-flow" d="M120 96 v16" />
+                <path class="d-flow" d="M120 152 v16" />
+                <rect class="d-box" x="30" y="10" width="180" height="30" rx="5" />
+                <text class="d-label" x="120" y="29" text-anchor="middle">FastAPI crawler</text>
+                <rect class="d-box d-box--llm" x="30" y="66" width="180" height="30" rx="5" />
+                <text class="d-label" x="120" y="85" text-anchor="middle">LLM classifier</text>
+                <rect class="d-box" x="30" y="122" width="180" height="30" rx="5" />
+                <text class="d-label" x="120" y="141" text-anchor="middle">verification queue</text>
+                <rect class="d-box" x="30" y="178" width="180" height="30" rx="5" />
+                <text class="d-label" x="120" y="197" text-anchor="middle">CRM + Outlook inbox</text>
+              </svg>
+            </figure>
           </div>
           <div class="feature__body">
             <p>
@@ -228,27 +299,22 @@
     <section id="skills">
       <div class="wrap">
         <h2>Skills</h2>
-        <div class="skills">
-          <div class="skills__row">
-            <h3>LLM and generative AI</h3>
-            <p>OpenAI API (GPT-4o), Google Gemini, LangChain, LlamaIndex, HuggingFace Transformers,
+        <div class="skillsfile">
+          <p class="skillsfile__bar"><span class="skillsfile__dot" aria-hidden="true"></span>skills.yaml</p>
+          <div class="skillsfile__body">
+            <h3 class="y-key" aria-label="LLM and generative AI">llm_and_generative_ai:</h3>
+            <p class="y-val">[OpenAI API (GPT-4o), Google Gemini, LangChain, LlamaIndex, HuggingFace Transformers,
               LLM fine-tuning and evaluation, AI agents, function calling, structured outputs with
-              Pydantic, prompt engineering, guardrails</p>
-          </div>
-          <div class="skills__row">
-            <h3>Retrieval and RAG</h3>
-            <p>RAG pipelines, Pinecone, vector embeddings, document chunking and ingestion, semantic
-              search, query caching</p>
-          </div>
-          <div class="skills__row">
-            <h3>Backend and cloud</h3>
-            <p>Python, FastAPI, Node.js, Express, TypeScript, MongoDB, Redis, REST APIs, microservices,
-              Docker, AWS, Azure and Microsoft Graph, CI/CD</p>
-          </div>
-          <div class="skills__row">
-            <h3>Reliability and real-time</h3>
-            <p>Dead-letter queues, transactional outbox, idempotency, distributed schedulers, RBAC,
-              audit logging, Bolna voice AI, LiveKit, WebRTC, Socket.IO, Next.js, React</p>
+              Pydantic, prompt engineering, guardrails]</p>
+            <h3 class="y-key" aria-label="Retrieval and RAG">retrieval_and_rag:</h3>
+            <p class="y-val">[RAG pipelines, Pinecone, vector embeddings, document chunking and ingestion, semantic
+              search, query caching]</p>
+            <h3 class="y-key" aria-label="Backend and cloud">backend_and_cloud:</h3>
+            <p class="y-val">[Python, FastAPI, Node.js, Express, TypeScript, MongoDB, Redis, REST APIs, microservices,
+              Docker, AWS, Azure and Microsoft Graph, CI/CD]</p>
+            <h3 class="y-key" aria-label="Reliability and real-time">reliability_and_realtime:</h3>
+            <p class="y-val">[dead-letter queues, transactional outbox, idempotency, distributed schedulers, RBAC,
+              audit logging, Bolna voice AI, LiveKit, WebRTC, Socket.IO, Next.js, React]</p>
           </div>
         </div>
       </div>
@@ -271,7 +337,7 @@
 
         <div class="ask">
           <label class="ask__label" for="ask-in">Ask my portfolio
-            <span class="ask__tag">keyword search, no LLM</span>
+            <span class="ask__tag" id="ask-tag">keyword search, no LLM</span>
           </label>
           <form class="ask__form" id="ask-form">
             <input id="ask-in" type="text" autocomplete="off" spellcheck="false"

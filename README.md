@@ -14,8 +14,14 @@ python -m http.server 8000
 ## Structure
 
 - `index.html` — markup
+- `404.html` — GitHub Pages 404, styled as a dead-letter queue
+- `llms.txt` — plain-text summary for LLM crawlers
 - `assets/css/main.css` — all styles
-- `assets/js/` — one small file per feature (reveals, rail, terminal, world)
+- `assets/js/` — one small file per feature (reveals, rail, terminal, world, ask)
+- `assets/data/ask-index.json` — precomputed MiniLM word vectors for "Ask my portfolio"
+  (regenerate with `tools/build-ask-index.js`; needs node + `npm i @xenova/transformers`,
+  run from anywhere — the site itself stays build-free)
+- `assets/og-card.png` — 1200×630 share card used by the og:/twitter: meta
 - `assets/resume.pdf` — linked by the Resume buttons
 - `assets/icons/favicon.ico` — tab icon
 

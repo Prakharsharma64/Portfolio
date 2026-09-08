@@ -56,8 +56,10 @@ read and follow them:
 
 - `index.html` - markup only, plus two tiny inline scripts (gtag, js-loading class)
 - `assets/css/main.css` - all styles
-- `assets/js/reveals.js` - loader (anime timeline, exits on window load, 2.6s cap),
-  reveals, progress bar, h2 underlines (IntersectionObserver + rAF)
+- `assets/js/reveals.js` - loader (anime timeline; exits when window load AND the
+  world's first frame have both happened, 1.8s grace if the world never appears,
+  2.6s hard cap), the hero decode-in on the h1 em (width-locked, aria-label pinned
+  first), reveals, progress bar, h2 underlines (IntersectionObserver + rAF)
 - `assets/js/rail.js` - `window.scrollParam()` (the section-anchor scroll mapping,
   shared source of truth) + the station dot rail
 - `assets/js/terminal.js` - the terminal easter egg (`#term`, Ctrl+backquote toggle -
@@ -66,16 +68,32 @@ read and follow them:
   fly-to-station, copy email, motion toggle that calls the kill switches)
 - `assets/js/pipeline.js` - "Run a simulated dispatch": steps the hero diagram and
   writes the labeled log; pauses/resumes `window.pulseAnim` around a run
-- `assets/js/ask.js` - "Ask my portfolio": deterministic keyword search over `INDEX`,
-  no LLM; every answer restates copy already on the page
-- `assets/js/heartbeat.js` - latest public push across both GitHub accounts in the
-  footer; any failure or rate limit leaves the footer untouched
+- `assets/js/ask.js` - "Ask my portfolio": two deterministic engines, no LLM; every
+  answer restates copy already on the page. Engine 1: precomputed MiniLM word vectors
+  (`assets/data/ask-index.json`, lazy-fetched on first input focus) scored as
+  mean-over-query-words of max cosine to each entry's word cloud, threshold 0.55.
+  Engine 2 (fallback): the original keyword overlap. A meta line under each answer
+  names the engine that produced it. When `INDEX` changes, mirror the change in
+  `tools/build-ask-index.js` and rerun it (offline, npm lives outside this repo)
+- `assets/js/heartbeat.js` - latest public push across both GitHub accounts, written
+  to the footer AND the `#heartbeat-work` chip beside the Work heading; any failure
+  or rate limit leaves both untouched
 - `assets/js/world.js` - the 3D world (ES module)
   - `W[]` - five station anchor positions (hero, work, experience, skills, contact)
   - `s0..s4` - station groups: particle field / pipeline / job queue / robot / beacon
   - Robot parts: `bot`, `head`, `eyeL`, `eyeR`, `antenna`, `tip`, `torso`, `orbits[]`
   - Camera: CatmullRomCurve3 through `W[i] + camOffset`; uses `window.scrollParam()`;
     `smooth()` eases arrivals; robot poke raycaster on a window listener
+  - Dust field scattered along the whole camera path so travel never shows an empty
+    frame; on mobile the tick dims `#world` to 0.45 opacity past the hero; the first
+    rendered frame dispatches `world-ready` (reveals.js holds the loader for it)
+- `404.html` - GitHub Pages 404 styled as a dead-letter queue; every path in it is
+  site-absolute (`/Portfolio/...`) because Pages serves it at arbitrary depths
+- `llms.txt` - plain-text site summary for LLM crawlers; facts mirror the page copy
+- `assets/og-card.png` - 1200x630 share card referenced by the og:/twitter: meta in
+  index.html; JSON-LD Person schema also lives in the head
+- `tools/build-ask-index.js` - offline generator for `assets/data/ask-index.json`
+  (see ask.js above); node-only, never loaded by the site
 - SVG diagram: `.diagram` in the hero; boxes `.d-box`, flow `.d-flow`, pulse `.d-pulse`
 
 ### The `window.*` contract (the only cross-file API)
@@ -101,6 +119,11 @@ one more round.
 - Ask fallback ("No indexed answer. Ask the human: ...") is the designed dead end
 - The hero dispatch run is labeled "simulated run" on purpose
 - Dark-only theme: no light mode is planned
+- Ask vectors lazy-load on first input focus (nobody pays 72KB who never asks); the
+  tag under "Ask my portfolio" upgrades from keyword to embedding wording only after
+  the JSON actually loads, and the meta line under each answer names the real engine
+- The hero hint line is keyboard-only affordances, so it is hidden under 860px
+- Terminal `guardrails` and the stat row restate page copy; nothing is invented
 
 ## Truth rules
 
@@ -119,6 +142,10 @@ update every listed file in the same commit or the copies drift:
 - The five stations (count AND order must agree everywhere): `index.html` (rail
   buttons + nav), `rail.js` (selector list), `world.js` (`W[]`), `palette.js`
   (fly actions), `terminal.js` (fly help text)
+- Ask `INDEX` answers: `ask.js` and `tools/build-ask-index.js` (rerun it so
+  `assets/data/ask-index.json` matches)
+- Positioning copy (headline, description): `index.html` (meta + og: + JSON-LD),
+  `llms.txt`, and the rendered `assets/og-card.png`
 
 ## Git
 

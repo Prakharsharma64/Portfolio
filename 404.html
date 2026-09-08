@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Route not found, Prakhar Sharma</title>
+  <meta name="robots" content="noindex" />
+  <!-- GitHub Pages serves this file for ANY missing path, so every URL here is
+       site-absolute; relative paths would break at nested routes -->
+  <link rel="icon" type="image/x-icon" href="/Portfolio/assets/icons/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/Portfolio/assets/css/main.css" />
+</head>
+
+<body>
+  <header>
+    <div class="wrap nav">
+      <a class="nav__name" href="/Portfolio/">Prakhar Sharma<b>.</b></a>
+    </div>
+  </header>
+
+  <main class="wrap dlq">
+    <div class="dlq__panel">
+      <h1>Dead-letter queue</h1>
+      <p id="dlq-path">GET this route</p>
+      <p>retry 1 of 3: <span class="dlq__fail">not found</span></p>
+      <p>retry 2 of 3: <span class="dlq__fail">not found</span></p>
+      <p>retry 3 of 3: <span class="dlq__fail">not found</span></p>
+      <p>retries exhausted. the request is parked here, the way failed jobs land
+        in my dead-letter queues. Nothing is lost; the good routes still work.</p>
+      <a class="btn" href="/Portfolio/">Requeue at the homepage</a>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var el = document.getElementById('dlq-path');
+      if (el && location.pathname) el.textContent = 'GET ' + location.pathname;
+    })();
+  </script>
+</body>
+
+</html>

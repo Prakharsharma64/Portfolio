@@ -1,0 +1,43 @@
+# Prakhar Sharma, AI Engineer
+
+> Portfolio of Prakhar Sharma, AI Engineer at The Odin (Jaipur, India). Production
+> LLM systems: RAG pipelines, autonomous voice agents, and deterministic schedulers
+> wrapped in guardrails. Open to AI engineering roles in Bengaluru or remote.
+
+This is a single-page static site. Every fact below restates copy already on the page.
+
+## Work
+
+- Dharwin: multi-tenant AI-powered ATS/HRM SaaS, in production. Pinecone RAG
+  knowledge base with grounded-count validation; autonomous voice agents call
+  candidates, run screening interviews, and write structured results back into
+  the ATS. 99 data models, 77 REST modules, 1,200+ commits in six months.
+- Religence: pharma lead discovery and CRM. A containerized FastAPI crawler
+  classifies prospect websites with OpenAI structured outputs and Google Places
+  enrichment; the TypeScript CRM adds verification queues, an in-app Outlook
+  inbox over Microsoft Graph delta sync, and an LLM mail-scheduling agent where
+  the LLM writes a versioned contract and a deterministic claim/lease scheduler
+  sends each run exactly once with per-run idempotency keys.
+- Also shipped: voice screening agents (Bolna, OpenAI), the PROWPLUS project
+  and support portal, and a Gemini legal document generator with structured
+  outputs and function calling.
+
+## Experience
+
+- AI Engineer, The Odin, Jaipur, Nov 2025 to present. Production RAG pipelines
+  with a post-LLM grounding validator, autonomous voice agents, versioned system
+  prompts and guardrails, BullMQ queues with dead-letter queues, the
+  transactional outbox pattern, and webhook idempotency guards.
+
+## Stack
+
+- Python, FastAPI, Node.js, Express, TypeScript, MongoDB, Redis, Docker, AWS,
+  Azure and Microsoft Graph; OpenAI, Google Gemini, LangChain, LlamaIndex,
+  Pinecone; Next.js and React.
+
+## Contact
+
+- Email: sharmaprakhar00o07@gmail.com
+- LinkedIn: https://www.linkedin.com/in/prakhar-sharma-42584723a/
+- GitHub: https://github.com/Prakhartheodin and https://github.com/Prakharsharma64
+- Resume: https://prakharsharma64.github.io/Portfolio/assets/resume.pdf

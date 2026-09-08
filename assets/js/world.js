@@ -87,7 +87,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     s1.add(new THREE.Line(railGeo, amberLineMat));
     const pulse3d = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), amberMat);
     s1.add(pulse3d);
-    s1.position.copy(W[1]).add(new THREE.Vector3(-9, -1, -5));
+    s1.position.copy(W[1]).add(new THREE.Vector3(-7, -2.5, -6));
     s1.rotation.y = 0.35;
     scene.add(s1);
 
@@ -169,7 +169,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       orbits.push(o);
       s3.add(o);
     });
-    s3.position.copy(W[3]).add(new THREE.Vector3(-14, 0.5, -8));
+    s3.position.copy(W[3]).add(new THREE.Vector3(6.5, 0.5, -9));
     scene.add(s3);
 
     /* ---------- station 4: the beacon ---------- */
@@ -192,13 +192,31 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       rings.push(ring);
       s4.add(ring);
     }
-    s4.position.copy(W[4]).add(new THREE.Vector3(7, -0.5, -2));
+    s4.position.copy(W[4]).add(new THREE.Vector3(4.5, -0.5, -2));
     scene.add(s4);
 
     /* ---------- camera path through the stations ---------- */
     const camOffset = new THREE.Vector3(0, 1.2, 9.5);
     const camPts = W.map(w => w.clone().add(camOffset));
     const path = new THREE.CatmullRomCurve3(camPts, false, 'catmullrom', 0.4);
+
+    /* sparse dust scattered along the whole flight path, pushed ahead of the
+       camera: travel between stations never shows an empty black frame */
+    {
+      const pts = path.getPoints(140);
+      const n = mobile ? 240 : 520;
+      const pos = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) {
+        const p = pts[Math.floor(Math.random() * pts.length)];
+        pos[i * 3] = p.x + (Math.random() - 0.5) * 18;
+        pos[i * 3 + 1] = p.y + (Math.random() - 0.5) * 11;
+        pos[i * 3 + 2] = p.z - 5 - Math.random() * 16;
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      scene.add(new THREE.Points(g,
+        new THREE.PointsMaterial({ color: GREY, size: 0.05, transparent: true, opacity: 0.38 })));
+    }
 
     /* section-anchor mapping lives in the classic script (window.scrollParam),
        shared with the station rail; if rail.js ever failed to load, hold the
@@ -248,6 +266,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
 
     /* palette's motion toggle: stop the loop and drop the canvas */
     let dead = false;
+    let worldAnnounced = false; /* reveals.js holds the loader until the first frame */
     window.killWorld = () => {
       dead = true;
       renderer.domElement.remove();
@@ -264,6 +283,10 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
 
       /* camera along the spline */
       const u = scrollParam();
+
+      /* phones: geometry sits behind body text, so dim the world past the hero
+         (the CSS transition on #world smooths the change) */
+      if (mobile) holder.style.opacity = u > 0.04 ? 0.45 : 1;
       path.getPoint(u, camPos);
       camera.position.set(camPos.x + mx * 1.2, camPos.y - my * 0.8, camPos.z);
       const seg = Math.min(Math.floor(u * (W.length - 1)), W.length - 2);
@@ -330,6 +353,10 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       });
 
       renderer.render(scene, camera);
+      if (!worldAnnounced) {
+        worldAnnounced = true;
+        window.dispatchEvent(new Event('world-ready'));
+      }
     })();
   } catch (e) {
     /* CDN unreachable: the page stays fully usable without 3D */

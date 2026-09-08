@@ -31,6 +31,12 @@
     { label: 'Fly to Skills', run: fly('skills') },
     { label: 'Fly to Contact', run: fly('contact') },
     {
+      label: 'Open terminal', run: function () {
+        closePal();
+        if (window.openTerminal) window.openTerminal();
+      }
+    },
+    {
       label: 'Download resume', run: function () {
         var a = document.createElement('a');
         a.href = './assets/resume.pdf';

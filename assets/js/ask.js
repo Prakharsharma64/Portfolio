@@ -1,9 +1,15 @@
-/* Feature: deterministic Q&A over the page's real facts. Token overlap, no LLM. */
+/* Feature: deterministic Q&A over the page's real facts. Two engines, no LLM:
+   1. embedding search: MiniLM vectors precomputed offline and shipped as a
+      static JSON asset (assets/data/ask-index.json); the browser only does
+      cosine similarity. Loads lazily on first focus; nothing leaves the tab.
+   2. keyword overlap: the original engine, instant, and the fallback whenever
+      the vectors are missing, still loading, or score below threshold. */
 (function () {
   var form = document.getElementById('ask-form');
   if (!form) return;
   var input = document.getElementById('ask-in');
   var out = document.getElementById('ask-out');
+  var tag = document.getElementById('ask-tag');
 
   /* every answer restates copy already on this page */
   var INDEX = [
@@ -57,17 +63,122 @@
     }
   ];
 
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var tokens = input.value.toLowerCase().split(/[^a-z0-9+-]+/).filter(Boolean);
-    if (!tokens.length) return;
+  var FALLBACK = 'No indexed answer. Ask the human: sharmaprakhar00o07@gmail.com';
+  var THRESHOLD = 0.55;
+
+  /* ---------- engine 1: precomputed embeddings ---------- */
+  var VEC = null;
+  var loading = false;
+
+  /* vectors are stored as base64 int8 (byte = component + 128); cosine is
+     scale-invariant, so normalizing after decode restores full precision */
+  function b64ToVec(b64) {
+    var bin = atob(b64);
+    var v = new Float32Array(bin.length);
+    var norm = 0;
+    for (var i = 0; i < bin.length; i++) {
+      var x = bin.charCodeAt(i) - 128;
+      v[i] = x;
+      norm += x * x;
+    }
+    norm = Math.sqrt(norm) || 1;
+    for (i = 0; i < v.length; i++) v[i] /= norm;
+    return v;
+  }
+
+  function loadVectors() {
+    if (loading || VEC || !window.fetch) return;
+    loading = true;
+    fetch('./assets/data/ask-index.json')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d || !d.words || !d.entries || d.entries.length !== INDEX.length) return;
+        var words = {};
+        Object.keys(d.words).forEach(function (w) { words[w] = b64ToVec(d.words[w]); });
+        /* each entry ships as a word cloud; resolve it to vectors once */
+        var entries = d.entries.map(function (ws) {
+          return ws.map(function (w) { return words[w]; }).filter(Boolean);
+        });
+        VEC = { words: words, entries: entries };
+        if (tag) tag.textContent = 'embedding search, no LLM, no server';
+      })
+      .catch(function () { /* keyword engine keeps working */ });
+  }
+  input.addEventListener('focus', loadVectors, { once: true });
+
+  function toks(q) {
+    return q.toLowerCase().split(/[^a-z0-9+-]+/).filter(Boolean);
+  }
+
+  function wordVec(t) {
+    var w = VEC.words;
+    return w[t] || w[t.replace(/s$/, '')] || w[t + 's'] || null;
+  }
+
+  /* soft keyword match: score(entry) = mean over the query's known words of
+     the max cosine to that entry's word cloud. Synonyms land ("phone" finds
+     "call"), function words are simply absent from the vocabulary, and a
+     query with no known words falls through to the keyword engine */
+  function semantic(q) {
+    if (!VEC) return null;
+    var qv = [];
+    toks(q).forEach(function (t) {
+      var v = wordVec(t);
+      if (v) qv.push(v);
+    });
+    if (!qv.length) return null;
+    var best = -1, bi = -1;
+    VEC.entries.forEach(function (ws, j) {
+      var total = 0;
+      qv.forEach(function (v) {
+        var mx = -1;
+        ws.forEach(function (ev) {
+          var d = 0;
+          for (var i = 0; i < ev.length; i++) d += ev[i] * v[i];
+          if (d > mx) mx = d;
+        });
+        total += mx;
+      });
+      var score = total / qv.length;
+      if (score > best) { best = score; bi = j; }
+    });
+    if (best < THRESHOLD) return null;
+    return { text: INDEX[bi].a, meta: 'engine: precomputed MiniLM vectors, score ' + best.toFixed(2) };
+  }
+
+  /* ---------- engine 2: keyword overlap ---------- */
+  function keyword(q) {
+    var tokens = toks(q);
+    if (!tokens.length) return null;
     var best = null, bestScore = 0;
     INDEX.forEach(function (entry) {
       var score = 0;
       tokens.forEach(function (t) { if (entry.k.indexOf(t) >= 0) score++; });
       if (score > bestScore) { bestScore = score; best = entry; }
     });
-    out.textContent = best ? best.a
-      : 'No indexed answer. Ask the human: sharmaprakhar00o07@gmail.com';
+    if (!best) return null;
+    return { text: best.a, meta: 'engine: keyword overlap' };
+  }
+
+  /* shared entry point; the terminal's `ask` command reuses it */
+  function answer(q) {
+    return semantic(q) || keyword(q) || { text: FALLBACK, meta: null };
+  }
+  window.askPortfolio = answer;
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!toks(input.value).length) return;
+    var r = answer(input.value);
+    out.textContent = '';
+    var p = document.createElement('p');
+    p.textContent = r.text;
+    out.appendChild(p);
+    if (r.meta) {
+      var m = document.createElement('p');
+      m.className = 'ask__meta';
+      m.textContent = r.meta;
+      out.appendChild(m);
+    }
   });
 })();

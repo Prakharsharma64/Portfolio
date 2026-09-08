@@ -1,8 +1,10 @@
-/* Feature: latest public push across both GitHub accounts, footer left.
-   Any failure, rate limit, or empty result leaves the footer untouched. */
+/* Feature: latest public push across both GitHub accounts, shown in the
+   footer and as the chip beside the Work heading. Any failure, rate limit,
+   or empty result leaves both untouched. */
 (function () {
   var el = document.getElementById('heartbeat');
-  if (!el || !window.fetch || !window.AbortController) return;
+  var chip = document.getElementById('heartbeat-work');
+  if ((!el && !chip) || !window.fetch || !window.AbortController) return;
 
   function rel(date) {
     var s = (Date.now() - date.getTime()) / 1000;
@@ -24,7 +26,9 @@
       if (!pushes.length) return;
       pushes.sort(function (a, b) { return new Date(b.created_at) - new Date(a.created_at); });
       var repo = pushes[0].repo.name.split('/')[1];
-      el.textContent = 'last commit: ' + repo + ', ' + rel(new Date(pushes[0].created_at));
+      var when = rel(new Date(pushes[0].created_at));
+      if (el) el.textContent = 'last commit: ' + repo + ', ' + when;
+      if (chip) chip.textContent = 'last push: ' + repo + ', ' + when;
     });
   });
 })();
