@@ -89,9 +89,14 @@ read and follow them:
     rendered frame dispatches `world-ready` (reveals.js holds the loader for it)
   - Hero field extras: static kNN threads between cloud points (`links`), and on
     hover devices a query probe (`qGroup`) that follows the cursor with live
-    nearest-neighbor threads; entrance convergence + camera dolly on first load
-    (skipped if the page loads scrolled); stations speed up on camera arrival via
-    `prox()` + accumulated phases; camera banks through turns and leads mid-leg
+    nearest-neighbor threads + retrieval sparks streaming along them; entrance
+    convergence + camera dolly on first load (skipped if the page loads scrolled);
+    stations speed up on camera arrival via `prox()` + accumulated phases; camera
+    banks through turns and leads mid-leg
+  - Hero life (gated on `segF < 1.2`): graph activations (`acts` pool - a random
+    thread fires a spark, far node flares), amber points breathe (material
+    size/opacity sine), per-point sine wander on desktop (entrance owns the
+    position buffer while it runs; mobile keeps rotation only)
 - `404.html` - GitHub Pages 404 styled as a dead-letter queue; every path in it is
   site-absolute (`/Portfolio/...`) because Pages serves it at arbitrary depths
 - `llms.txt` - plain-text site summary for LLM crawlers; facts mirror the page copy

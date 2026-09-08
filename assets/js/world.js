@@ -75,7 +75,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     /* static kNN threads so the field reads as a graph, not dust */
     const cloudTarget = cloud.geometry.getAttribute('position').array.slice();
     const amberTarget = amberPts.geometry.getAttribute('position').array.slice();
-    let links;
+    let links, linkArr, linkCount = 0;
     {
       const maxLinks = mobile ? 60 : 110;
       const n = cloudTarget.length / 3;
@@ -97,16 +97,31 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
         }
       }
       const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(linkPos), 3));
+      linkArr = new Float32Array(linkPos);
+      linkCount = linkArr.length / 6;
+      g.setAttribute('position', new THREE.BufferAttribute(linkArr, 3));
       links = new THREE.LineSegments(g,
         new THREE.LineBasicMaterial({ color: GREY, transparent: true, opacity: 0.14 }));
       s0.add(links);
     }
 
+    /* graph activations: a random thread fires, a spark travels it, the far
+       node flares on arrival */
+    const ACT_N = 3;
+    const acts = [];
+    for (let i = 0; i < ACT_N; i++) {
+      const spark = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), amberMat);
+      const flare = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), amberMat);
+      spark.visible = flare.visible = false;
+      links.add(spark, flare);
+      acts.push({ spark, flare, link: 0, start: -1 });
+    }
+    let nextAct = 0.8;
+
     /* the cursor as a query vector: amber probe + threads to its nearest
        neighbors (hover devices only; touch has no pointer to track) */
     const Q_K = 5;
-    let qGroup = null, qDot = null, qLines = null, qLinePos = null;
+    let qGroup = null, qDot = null, qLines = null, qLinePos = null, qSparks = null;
     const qBestD = new Float64Array(Q_K), qBestI = new Int32Array(Q_K);
     if (window.matchMedia('(hover: hover)').matches) {
       qGroup = new THREE.Group();
@@ -117,6 +132,12 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       qLines = new THREE.LineSegments(qGeo,
         new THREE.LineBasicMaterial({ color: AMBER, transparent: true, opacity: 0.4 }));
       qGroup.add(qDot, qLines);
+      qSparks = [];
+      for (let k = 0; k < Q_K; k++) {
+        const sp = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 6), amberMat);
+        qGroup.add(sp);
+        qSparks.push(sp);
+      }
       qGroup.visible = false;
       s0.add(qGroup);
     }
@@ -390,6 +411,54 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       amberPts.rotation.y = t * 0.06;
       wf.rotation.y = -t * 0.03;
 
+      /* hero life: activations, breathing, drift (idle once well past the hero) */
+      if (segF < 1.2) {
+        if (t >= nextAct && !entrance.active && linkCount) {
+          nextAct = t + 1 + Math.random() * 1.2;
+          const free = acts.find(x => x.start < 0);
+          if (free) { free.link = Math.floor(Math.random() * linkCount); free.start = t; }
+        }
+        acts.forEach(a => {
+          if (a.start < 0) return;
+          const p = (t - a.start) / 0.9;
+          if (p >= 1) { a.start = -1; a.spark.visible = a.flare.visible = false; return; }
+          const o = a.link * 6;
+          const tr = smooth(Math.min(p / 0.7, 1));
+          a.spark.visible = true;
+          a.spark.position.set(
+            linkArr[o] + (linkArr[o + 3] - linkArr[o]) * tr,
+            linkArr[o + 1] + (linkArr[o + 4] - linkArr[o + 1]) * tr,
+            linkArr[o + 2] + (linkArr[o + 5] - linkArr[o + 2]) * tr);
+          const fl = Math.max(0, (p - 0.7) / 0.3);
+          a.flare.visible = fl > 0;
+          if (fl > 0) {
+            a.flare.position.set(linkArr[o + 3], linkArr[o + 4], linkArr[o + 5]);
+            a.flare.scale.setScalar(0.4 + Math.sin(fl * Math.PI) * 1.6);
+          }
+        });
+
+        amberPts.material.size = 0.075 * (1 + 0.3 * Math.sin(t * 1.1));
+        amberPts.material.opacity = 0.72 + 0.13 * Math.sin(t * 1.1 + 1);
+
+        /* per-point wander keeps the field fluid (desktop; entrance owns the buffer) */
+        if (!mobile && !entrance.active) {
+          const cp = cloud.geometry.attributes.position.array;
+          for (let i = 0; i < cp.length; i += 3) {
+            cp[i] = cloudTarget[i] + Math.sin(t * 0.5 + cloudTarget[i + 1] * 2.3) * 0.06;
+            cp[i + 1] = cloudTarget[i + 1] + Math.sin(t * 0.6 + cloudTarget[i + 2] * 2.1) * 0.05;
+            cp[i + 2] = cloudTarget[i + 2] + Math.sin(t * 0.4 + cloudTarget[i] * 1.9) * 0.06;
+          }
+          cloud.geometry.attributes.position.needsUpdate = true;
+          const ap = amberPts.geometry.attributes.position.array;
+          for (let i = 0; i < ap.length; i += 3) {
+            ap[i] = amberTarget[i] + Math.sin(t * 0.45 + amberTarget[i + 1] * 2.0) * 0.07;
+            ap[i + 1] = amberTarget[i + 1] + Math.sin(t * 0.55 + amberTarget[i + 2] * 2.2) * 0.06;
+            ap[i + 2] = amberTarget[i + 2] + Math.sin(t * 0.5 + amberTarget[i] * 1.8) * 0.07;
+          }
+          amberPts.geometry.attributes.position.needsUpdate = true;
+        }
+      }
+
       /* the cursor as a query vector: probe + live nearest-neighbor threads */
       if (qGroup) {
         const showQ = segF < 0.5 && lastX >= 0;
@@ -430,6 +499,15 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
               qLinePos[o + 5] = P[i * 3 + 2];
             }
             qLines.geometry.attributes.position.needsUpdate = true;
+            /* retrieval pulses: sparks stream outward along each thread */
+            for (let k = 0; k < Q_K; k++) {
+              const o = k * 6;
+              const ph = (t * 0.7 + k / Q_K) % 1;
+              qSparks[k].position.set(
+                qLinePos[o] + (qLinePos[o + 3] - qLinePos[o]) * ph,
+                qLinePos[o + 1] + (qLinePos[o + 4] - qLinePos[o + 1]) * ph,
+                qLinePos[o + 2] + (qLinePos[o + 5] - qLinePos[o + 2]) * ph);
+            }
           }
         }
       }
