@@ -87,6 +87,11 @@ read and follow them:
   - Dust field scattered along the whole camera path so travel never shows an empty
     frame; on mobile the tick dims `#world` to 0.45 opacity past the hero; the first
     rendered frame dispatches `world-ready` (reveals.js holds the loader for it)
+  - Hero field extras: static kNN threads between cloud points (`links`), and on
+    hover devices a query probe (`qGroup`) that follows the cursor with live
+    nearest-neighbor threads; entrance convergence + camera dolly on first load
+    (skipped if the page loads scrolled); stations speed up on camera arrival via
+    `prox()` + accumulated phases; camera banks through turns and leads mid-leg
 - `404.html` - GitHub Pages 404 styled as a dead-letter queue; every path in it is
   site-absolute (`/Portfolio/...`) because Pages serves it at arbitrary depths
 - `llms.txt` - plain-text site summary for LLM crawlers; facts mirror the page copy

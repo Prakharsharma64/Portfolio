@@ -72,6 +72,55 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     s0.position.copy(W[0]);
     scene.add(s0);
 
+    /* static kNN threads so the field reads as a graph, not dust */
+    const cloudTarget = cloud.geometry.getAttribute('position').array.slice();
+    const amberTarget = amberPts.geometry.getAttribute('position').array.slice();
+    let links;
+    {
+      const maxLinks = mobile ? 60 : 110;
+      const n = cloudTarget.length / 3;
+      const linkPos = [];
+      for (let i = 0; i < n && linkPos.length / 6 < maxLinks; i += 3) {
+        let best = -1, bestD = 1.44;
+        for (let j = 0; j < n; j++) {
+          if (j === i) continue;
+          const dx = cloudTarget[i * 3] - cloudTarget[j * 3];
+          const dy = cloudTarget[i * 3 + 1] - cloudTarget[j * 3 + 1];
+          const dz = cloudTarget[i * 3 + 2] - cloudTarget[j * 3 + 2];
+          const d = dx * dx + dy * dy + dz * dz;
+          if (d < bestD) { bestD = d; best = j; }
+        }
+        if (best >= 0) {
+          linkPos.push(
+            cloudTarget[i * 3], cloudTarget[i * 3 + 1], cloudTarget[i * 3 + 2],
+            cloudTarget[best * 3], cloudTarget[best * 3 + 1], cloudTarget[best * 3 + 2]);
+        }
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(linkPos), 3));
+      links = new THREE.LineSegments(g,
+        new THREE.LineBasicMaterial({ color: GREY, transparent: true, opacity: 0.14 }));
+      s0.add(links);
+    }
+
+    /* the cursor as a query vector: amber probe + threads to its nearest
+       neighbors (hover devices only; touch has no pointer to track) */
+    const Q_K = 5;
+    let qGroup = null, qDot = null, qLines = null, qLinePos = null;
+    const qBestD = new Float64Array(Q_K), qBestI = new Int32Array(Q_K);
+    if (window.matchMedia('(hover: hover)').matches) {
+      qGroup = new THREE.Group();
+      qDot = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 10), amberMat);
+      qLinePos = new Float32Array(Q_K * 6);
+      const qGeo = new THREE.BufferGeometry();
+      qGeo.setAttribute('position', new THREE.BufferAttribute(qLinePos, 3));
+      qLines = new THREE.LineSegments(qGeo,
+        new THREE.LineBasicMaterial({ color: AMBER, transparent: true, opacity: 0.4 }));
+      qGroup.add(qDot, qLines);
+      qGroup.visible = false;
+      s0.add(qGroup);
+    }
+
     /* ---------- station 1: the pipeline in 3D ---------- */
     const s1 = new THREE.Group();
     const stages = 4;
@@ -231,6 +280,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       tx = e.clientX / window.innerWidth - 0.5;
       ty = e.clientY / window.innerHeight - 0.5;
       lastX = e.clientX; lastY = e.clientY;
+      pointerMoved = true;
     }, { passive: true });
 
     /* robot interaction: raycast picking on a window listener
@@ -239,7 +289,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     const ndc = new THREE.Vector2();
     const botMeshes = [];
     bot.traverse((o) => { if (o.isMesh) botMeshes.push(o); });
-    let nearBot = false, hoverBot = false, pokeT = -1;
+    let nearBot = false, hoverBot = false, overBot = false, pointerMoved = false, pokeT = -1;
     let botYaw = 0, botPitch = 0, eyeShiftX = 0, eyeShiftY = 0;
 
     function hitsBot(cx, cy) {
@@ -262,7 +312,14 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
 
     const look = new THREE.Vector3();
     const camPos = new THREE.Vector3();
+    const tanNow = new THREE.Vector3();
+    const tanAhead = new THREE.Vector3();
+    const qPos = new THREE.Vector3();
+    const UP = new THREE.Vector3(0, 1, 0);
     const clock = new THREE.Clock();
+    let roll = 0, entranceZ = 0, lastT = 0, frameN = 0;
+    let pulsePhase = 0, jobPhase = 0, orbitPhase = 0, ringPhase = 0;
+    const entrance = { active: false, start: -1, dur: 1.6 };
 
     /* palette's motion toggle: stop the loop and drop the canvas */
     let dead = false;
@@ -278,40 +335,119 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       requestAnimationFrame(tick);
       if (document.hidden) return;
       const t = clock.getElapsedTime();
+      const dt = Math.min(t - lastT, 0.05);
+      lastT = t;
       mx += (tx - mx) * 0.04;
       my += (ty - my) * 0.04;
 
       /* camera along the spline */
       const u = scrollParam();
 
+      /* entrance: field converges while the camera dollies in (skipped if the
+         page loads already scrolled past the hero) */
+      if (entrance.start < 0) {
+        entrance.start = t;
+        entrance.active = u < 0.04;
+      }
+      if (entrance.active) {
+        const e = smooth(Math.min((t - entrance.start) / entrance.dur, 1));
+        const spread = 1 + (1 - e) * 2.2;
+        const cp = cloud.geometry.attributes.position.array;
+        for (let i = 0; i < cp.length; i++) cp[i] = cloudTarget[i] * spread;
+        cloud.geometry.attributes.position.needsUpdate = true;
+        const ap = amberPts.geometry.attributes.position.array;
+        for (let i = 0; i < ap.length; i++) ap[i] = amberTarget[i] * spread;
+        amberPts.geometry.attributes.position.needsUpdate = true;
+        wf.scale.setScalar(0.5 + 0.5 * e);
+        links.material.opacity = 0.14 * e;
+        entranceZ = (1 - e) * 6;
+        if (e >= 1) { entrance.active = false; entranceZ = 0; }
+      }
+
       /* phones: geometry sits behind body text, so dim the world past the hero
          (the CSS transition on #world smooths the change) */
       if (mobile) holder.style.opacity = u > 0.04 ? 0.45 : 1;
       path.getPoint(u, camPos);
-      camera.position.set(camPos.x + mx * 1.2, camPos.y - my * 0.8, camPos.z);
+      camera.position.set(camPos.x + mx * 1.2, camPos.y - my * 0.8, camPos.z + entranceZ);
       const seg = Math.min(Math.floor(u * (W.length - 1)), W.length - 2);
       const lt = u * (W.length - 1) - seg;
+
+      /* bank into turns; lead the look mid-leg so travel feels piloted */
+      path.getTangent(u, tanNow);
+      path.getTangent(Math.min(u + 0.02, 1), tanAhead);
+      const targetRoll = Math.max(-0.06, Math.min(0.06, -(tanAhead.x - tanNow.x) * 2.2));
+      roll += (targetRoll - roll) * 0.05;
+      camera.up.set(Math.sin(roll), Math.cos(roll), 0);
       look.lerpVectors(W[seg], W[seg + 1], smooth(lt));
+      look.addScaledVector(tanNow, Math.sin(lt * Math.PI) * 1.3);
       camera.lookAt(look);
 
-      /* station life */
+      /* station life (arrival proximity wakes each station up) */
+      const segF = u * (W.length - 1);
+      const prox = (i) => Math.max(0, 1 - Math.abs(segF - i) / 0.7);
       cloud.rotation.y = t * 0.04;
+      links.rotation.y = t * 0.04;
       amberPts.rotation.y = t * 0.06;
       wf.rotation.y = -t * 0.03;
 
-      const pu = (t * 0.22) % 1;
+      /* the cursor as a query vector: probe + live nearest-neighbor threads */
+      if (qGroup) {
+        const showQ = segF < 0.5 && lastX >= 0;
+        qGroup.visible = showQ;
+        if (showQ) {
+          qGroup.rotation.y = cloud.rotation.y;
+          ndc.set((lastX / window.innerWidth) * 2 - 1, -(lastY / window.innerHeight) * 2 + 1);
+          ray.setFromCamera(ndc, camera);
+          if (ray.ray.direction.z < -0.001) {
+            qPos.copy(ray.ray.direction)
+              .multiplyScalar(-ray.ray.origin.z / ray.ray.direction.z)
+              .add(ray.ray.origin);
+            if (qPos.length() > 4.6) qPos.setLength(4.6);
+            qPos.applyAxisAngle(UP, -cloud.rotation.y);
+            qDot.position.lerp(qPos, 0.15);
+            const P = cloud.geometry.attributes.position.array;
+            for (let k = 0; k < Q_K; k++) { qBestD[k] = 1e9; qBestI[k] = 0; }
+            for (let i = 0; i < P.length / 3; i++) {
+              const dx = P[i * 3] - qDot.position.x;
+              const dy = P[i * 3 + 1] - qDot.position.y;
+              const dz = P[i * 3 + 2] - qDot.position.z;
+              const d = dx * dx + dy * dy + dz * dz;
+              if (d < qBestD[Q_K - 1]) {
+                let k = Q_K - 1;
+                while (k > 0 && qBestD[k - 1] > d) {
+                  qBestD[k] = qBestD[k - 1]; qBestI[k] = qBestI[k - 1]; k--;
+                }
+                qBestD[k] = d; qBestI[k] = i;
+              }
+            }
+            for (let k = 0; k < Q_K; k++) {
+              const i = qBestI[k], o = k * 6;
+              qLinePos[o] = qDot.position.x;
+              qLinePos[o + 1] = qDot.position.y;
+              qLinePos[o + 2] = qDot.position.z;
+              qLinePos[o + 3] = P[i * 3];
+              qLinePos[o + 4] = P[i * 3 + 1];
+              qLinePos[o + 5] = P[i * 3 + 2];
+            }
+            qLines.geometry.attributes.position.needsUpdate = true;
+          }
+        }
+      }
+
+      pulsePhase += dt * (0.22 + prox(1) * 0.34);
+      const pu = pulsePhase % 1;
       pulse3d.position.x = (pu - 0.5) * (stages - 1) * 3.4;
 
+      jobPhase += dt * (0.06 + prox(2) * 0.09);
       jobs.forEach((c, i) => {
-        const s = (t * 0.06 + i / jobCount) % 1;
+        const s = (jobPhase + i / jobCount) % 1;
         qCurve.getPoint(s, c.position);
         c.rotation.y = t * 0.8 + i;
       });
-      dlq.rotation.z = t * 0.5;
+      dlq.rotation.z += dt * (0.5 + prox(2) * 1.6);
 
       /* robot: idle sway, pointer tracking near the skills station, poke reaction */
-      const seg3 = u * (W.length - 1);
-      nearBot = seg3 > 1.9 && seg3 < 3.4;
+      nearBot = segF > 1.9 && segF < 3.4;
       const idleYaw = Math.sin(t * 0.4) * 0.3;
       botYaw += ((nearBot ? idleYaw + tx * 0.6 : idleYaw) - botYaw) * 0.06;
       botPitch += ((nearBot ? -ty * 0.35 : 0) - botPitch) * 0.06;
@@ -338,17 +474,25 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       const blink = (Math.sin(t * 2.2) + 1) / 2;
       const tipBase = 0.8 + blink * 0.5;
       tip.scale.setScalar(tipBase + (1.8 - tipBase) * tipBoost);
-      orbits.forEach((o, i) => { o.rotation.y = t * (0.25 + i * 0.1); });
+      orbitPhase += dt * (1 + prox(3) * 0.8);
+      orbits.forEach((o, i) => { o.rotation.y = orbitPhase * (0.25 + i * 0.1); });
 
-      const overBot = nearBot && lastX >= 0 && hitsBot(lastX, lastY);
+      /* hover raycast only when the pointer moved (plus a slow keep-fresh tick) */
+      frameN++;
+      if (!nearBot) overBot = false;
+      else if (lastX >= 0 && (pointerMoved || (frameN & 15) === 0)) {
+        overBot = hitsBot(lastX, lastY);
+        pointerMoved = false;
+      }
       if (overBot !== hoverBot) {
         hoverBot = overBot;
         document.body.style.cursor = overBot ? 'pointer' : '';
       }
 
+      ringPhase += dt * (0.45 + prox(4) * 0.55);
       rings.forEach((r, i) => {
-        const ph = (t * 0.45 + i / 3) % 1;
-        r.scale.setScalar(0.4 + ph * 2.6);
+        const ph = (ringPhase + i / 3) % 1;
+        r.scale.setScalar(0.4 + ph * (2.6 + prox(4) * 1.2));
         r.material.opacity = 0.55 * (1 - ph);
       });
 
