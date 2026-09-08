@@ -199,6 +199,25 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     dlq.position.set(4, -3.5, -2);
     dlq.rotation.x = Math.PI / 2.4;
     s2.add(dlq);
+    /* the dead-letter detour: now and then a job fails, arcs off the main
+       path, does one lap of the DLQ ring, and is dropped */
+    const reject = new THREE.Group();
+    {
+      const geo = new THREE.BoxGeometry(0.55, 0.55, 0.55);
+      reject.add(new THREE.Mesh(geo, amberMat));
+      reject.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat));
+    }
+    reject.visible = false;
+    s2.add(reject);
+    const dlqRx = Math.PI / 2.4;
+    const rejFrom = qCurve.getPoint(0.78);
+    function dlqPoint(th, out) {
+      out.set(
+        4 + Math.cos(th) * 1.5,
+        -3.5 + Math.sin(th) * 1.5 * Math.cos(dlqRx),
+        -2 + Math.sin(th) * 1.5 * Math.sin(dlqRx));
+      return out;
+    }
     s2.position.copy(W[2]).add(new THREE.Vector3(-9, 0, -4));
     s2.rotation.y = -0.3;
     scene.add(s2);
@@ -346,6 +365,8 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     const clock = new THREE.Clock();
     let roll = 0, entranceZ = 0, lastT = 0, frameN = 0;
     let pulsePhase = 0, jobPhase = 0, orbitPhase = 0, ringPhase = 0;
+    let rejStart = -1, nextReject = 2;
+    const rejV = new THREE.Vector3();
     const entrance = { active: false, start: -1, dur: 1.6 };
 
     /* palette's motion toggle: stop the loop and drop the canvas */
@@ -539,6 +560,29 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
         c.rotation.y = t * 0.8 + i;
       });
       dlq.rotation.z += dt * (0.5 + prox(2) * 1.6);
+
+      /* dead-letter detour, only while the station is being watched */
+      if (rejStart < 0 && t >= nextReject && prox(2) > 0.4) rejStart = t;
+      if (rejStart >= 0) {
+        const rp = t - rejStart;
+        reject.visible = true;
+        if (rp < 0.8) {
+          const k = smooth(rp / 0.8);
+          reject.position.lerpVectors(rejFrom, dlqPoint(0, rejV), k);
+          reject.position.y += Math.sin(k * Math.PI) * 0.8;
+          reject.scale.setScalar(1);
+        } else if (rp < 2.4) {
+          dlqPoint(((rp - 0.8) / 1.6) * Math.PI * 2, reject.position);
+        } else if (rp < 2.9) {
+          reject.scale.setScalar(Math.max(0.001, 1 - (rp - 2.4) / 0.5));
+        } else {
+          reject.visible = false;
+          rejStart = -1;
+          nextReject = t + 5 + Math.random() * 4;
+        }
+        reject.rotation.y = t * 2;
+        reject.rotation.x = t * 1.3;
+      }
 
       /* robot: idle sway, pointer tracking near the skills station, poke reaction */
       nearBot = segF > 1.9 && segF < 3.4;

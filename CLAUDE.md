@@ -59,7 +59,9 @@ read and follow them:
 - `assets/js/reveals.js` - loader (anime timeline; exits when window load AND the
   world's first frame have both happened, 1.8s grace if the world never appears,
   2.6s hard cap), the hero decode-in on the h1 em (width-locked, aria-label pinned
-  first), reveals, progress bar, h2 underlines (IntersectionObserver + rAF)
+  first), reveals, progress bar, h2 underlines (IntersectionObserver + rAF);
+  grouped cascades (`groups[]`: Also-shipped cards, xp paragraphs, skills.yaml
+  lines, contact items stagger in per container) and the skills.yaml dot pulse
 - `assets/js/rail.js` - `window.scrollParam()` (the section-anchor scroll mapping,
   shared source of truth) + the station dot rail
 - `assets/js/terminal.js` - the terminal easter egg (`#term`, Ctrl+backquote toggle -
@@ -100,6 +102,9 @@ read and follow them:
     thread fires a spark, far node flares), amber points breathe (material
     size/opacity sine), per-point sine wander on desktop (entrance owns the
     position buffer while it runs; mobile keeps rotation only)
+  - Station life: s1 runs three staggered packets and stage boxes bump as one
+    passes; s2 runs the dead-letter detour (`reject` cube: fails off the queue
+    curve, one DLQ ring lap, dropped; only while `prox(2) > 0.4`)
 - `404.html` - GitHub Pages 404 styled as a dead-letter queue; every path in it is
   site-absolute (`/Portfolio/...`) because Pages serves it at arbitrary depths
 - `llms.txt` - plain-text site summary for LLM crawlers; facts mirror the page copy

@@ -121,9 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
   maybeExit();
 
   /* ============ scroll reveals, once per element ============ */
-  var targets = document.querySelectorAll(
-    '.feature, .xp__meta, .xp__body p, .skillsfile, .contact__inner'
-  );
+  var targets = document.querySelectorAll('.feature');
   targets.forEach(function (el) { el.classList.add('reveal-target'); });
   anime.set(targets, { opacity: 0, translateY: 18 });
   var io = new IntersectionObserver(function (entries) {
@@ -139,23 +137,43 @@ document.addEventListener('DOMContentLoaded', function () {
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
   targets.forEach(function (t) { io.observe(t); });
 
-  /* the "Also shipped" cards cascade as one group instead of popping solo */
-  var gridItems = document.querySelectorAll('.more__grid article');
-  gridItems.forEach(function (el) { el.classList.add('reveal-target'); });
-  anime.set(gridItems, { opacity: 0, translateY: 18 });
-  var gio = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) {
-      if (e.isIntersecting) {
-        anime({
-          targets: gridItems, opacity: [0, 1], translateY: [18, 0],
-          duration: 650, delay: anime.stagger(90), easing: 'cubicBezier(.16,1,.3,1)'
-        });
-        gio.disconnect();
-      }
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-  var moreGrid = document.querySelector('.more__grid');
-  if (moreGrid) gio.observe(moreGrid);
+  /* grouped cascades: a container's items stagger in as one composition
+     ("Also shipped" cards, experience paragraphs, skills.yaml lines, contact) */
+  var groups = [
+    { root: '.more__grid', items: '.more__grid article', gap: 90 },
+    { root: '.xp', items: '.xp__meta, .xp__body p', gap: 100 },
+    { root: '.skillsfile', items: '.skillsfile__bar, .skillsfile__body > *', gap: 70 },
+    { root: '.contact__inner', items: '.contact__inner > p, .contact__row, .ask', gap: 80 }
+  ];
+  var groupItems = [];
+  var groupIOs = [];
+  groups.forEach(function (g) {
+    var root = document.querySelector(g.root);
+    var items = document.querySelectorAll(g.items);
+    if (!root || !items.length) return;
+    items.forEach(function (el) { el.classList.add('reveal-target'); });
+    anime.set(items, { opacity: 0, translateY: 18 });
+    groupItems.push(items);
+    var gio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          anime({
+            targets: items, opacity: [0, 1], translateY: [18, 0],
+            duration: 650, delay: anime.stagger(g.gap), easing: 'cubicBezier(.16,1,.3,1)'
+          });
+          gio.disconnect();
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    gio.observe(root);
+    groupIOs.push(gio);
+  });
+
+  /* skills.yaml activity dot: slow recording-light pulse */
+  var dotAnim = anime({
+    targets: '.skillsfile__dot', opacity: [1, 0.25],
+    duration: 1100, direction: 'alternate', loop: true, easing: 'easeInOutSine'
+  });
 
   /* section heading underlines */
   var h2io = new IntersectionObserver(function (entries) {
@@ -188,9 +206,11 @@ document.addEventListener('DOMContentLoaded', function () {
     uiDead = true;
     io.disconnect();
     h2io.disconnect();
-    gio.disconnect();
+    groupIOs.forEach(function (g) { g.disconnect(); });
     anime.set(targets, { opacity: 1, translateY: 0 });
-    anime.set(gridItems, { opacity: 1, translateY: 0 });
+    groupItems.forEach(function (items) { anime.set(items, { opacity: 1, translateY: 0 }); });
+    dotAnim.pause();
+    anime.set('.skillsfile__dot', { opacity: 1 });
     document.querySelectorAll('h2').forEach(function (h) { h.classList.add('seen'); });
     if (window.pulseAnim) window.pulseAnim.pause();
     pb.style.transform = '';
