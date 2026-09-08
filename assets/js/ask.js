@@ -68,6 +68,6 @@
       if (score > bestScore) { bestScore = score; best = entry; }
     });
     out.textContent = best ? best.a
-      : 'No indexed answer. Ask me the human: sharmaprakhar00o07@gmail.com';
+      : 'No indexed answer. Ask the human: sharmaprakhar00o07@gmail.com';
   });
 })();

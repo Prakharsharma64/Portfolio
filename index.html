@@ -34,10 +34,15 @@
   </div>
   <script>
     (function () {
+      document.documentElement.classList.add('js');
       var off = false;
       try { off = localStorage.getItem('motion-off') === '1'; } catch (e) { }
       if (!off && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         document.documentElement.classList.add('js-loading');
+        /* runs outside DOMContentLoaded: a hanging CDN can never hold the loader */
+        setTimeout(function () {
+          document.documentElement.classList.remove('js-loading');
+        }, 3000);
       }
     })();
   </script>
@@ -45,16 +50,6 @@
   <div id="world" aria-hidden="true"></div>
 
   <a class="skip" href="#main">Skip to content</a>
-
-  <nav id="rail" aria-label="Stations">
-    <button type="button" data-target="hero" aria-label="Fly to Hero"><span aria-hidden="true">Hero</span></button>
-    <button type="button" data-target="work" aria-label="Fly to Work"><span aria-hidden="true">Work</span></button>
-    <button type="button" data-target="experience" aria-label="Fly to Experience"><span
-        aria-hidden="true">Experience</span></button>
-    <button type="button" data-target="skills" aria-label="Fly to Skills"><span aria-hidden="true">Skills</span></button>
-    <button type="button" data-target="contact" aria-label="Fly to Contact"><span
-        aria-hidden="true">Contact</span></button>
-  </nav>
 
   <header>
     <div class="wrap nav">
@@ -64,7 +59,7 @@
         <a href="#experience">Experience</a>
         <a href="#skills">Skills</a>
         <a href="#contact">Contact</a>
-        <button class="nav__kbd" id="pal-open" type="button" aria-label="Open command palette (Ctrl+K)">⌘K</button>
+        <button class="nav__kbd" id="pal-open" type="button" aria-label="Open command palette (Ctrl K)">Ctrl K</button>
         <a class="btn btn--ghost" href="./assets/resume.pdf" download>Resume</a>
       </nav>
     </div>
@@ -276,11 +271,11 @@
 
         <div class="ask">
           <label class="ask__label" for="ask-in">Ask my portfolio
-            <span class="ask__tag">keyword search, no LLM - I right-size architectures</span>
+            <span class="ask__tag">keyword search, no LLM</span>
           </label>
           <form class="ask__form" id="ask-form">
             <input id="ask-in" type="text" autocomplete="off" spellcheck="false"
-              placeholder="e.g. how do you stop hallucinations?" />
+              placeholder="e.g. stop hallucinations?" />
             <button class="btn btn--ghost" type="submit">Search</button>
           </form>
           <div id="ask-out" class="ask__out" aria-live="polite"></div>
@@ -295,17 +290,25 @@
         <span>Prakhar Sharma, Jaipur, India</span>
         <span id="heartbeat" class="foot__beat"></span>
       </div>
-      <span>
+      <span class="foot__links">
         <a href="https://github.com/Prakhartheodin" target="_blank" rel="noopener">GitHub (work)</a>
-        &nbsp;&nbsp;
         <a href="https://github.com/Prakharsharma64" target="_blank" rel="noopener">GitHub (personal)</a>
-        &nbsp;&nbsp;
         <button class="foot__term" id="term-open" type="button">terminal</button>
       </span>
     </div>
   </footer>
 
-  <div id="pal" role="dialog" aria-label="Command palette" hidden>
+  <nav id="rail" aria-label="Stations">
+    <button type="button" data-target="hero" aria-label="Fly to Hero"><span aria-hidden="true">Hero</span></button>
+    <button type="button" data-target="work" aria-label="Fly to Work"><span aria-hidden="true">Work</span></button>
+    <button type="button" data-target="experience" aria-label="Fly to Experience"><span
+        aria-hidden="true">Experience</span></button>
+    <button type="button" data-target="skills" aria-label="Fly to Skills"><span aria-hidden="true">Skills</span></button>
+    <button type="button" data-target="contact" aria-label="Fly to Contact"><span
+        aria-hidden="true">Contact</span></button>
+  </nav>
+
+  <div id="pal" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
     <div class="pal__panel">
       <input id="pal-in" type="text" placeholder="Type a command" aria-label="Filter commands" autocomplete="off"
         spellcheck="false" role="combobox" aria-expanded="true" aria-controls="pal-list" />
@@ -313,7 +316,7 @@
     </div>
   </div>
 
-  <div id="term" role="dialog" aria-label="Terminal" hidden>
+  <div id="term" role="dialog" aria-modal="true" aria-label="Terminal" hidden>
     <div id="term-out" aria-live="polite"></div>
     <div class="term-line">
       <span aria-hidden="true">&gt;</span>

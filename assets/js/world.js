@@ -14,7 +14,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     holder.appendChild(renderer.domElement);
 
     const mobile = window.innerWidth < 860;
-    const GRAPHITE = 0x14161B, EDGE = 0x4A505A, AMBER = 0xF2A33C, GREY = 0x6E747E;
+    const GRAPHITE = 0x14161B, EDGE = 0x4A505A, AMBER = 0xF2A33C, GREY = 0x7A808A;
 
     const edgeMat = new THREE.LineBasicMaterial({ color: EDGE, transparent: true, opacity: 0.9 });
     const amberLineMat = new THREE.LineBasicMaterial({ color: AMBER, transparent: true, opacity: 0.5 });
@@ -87,15 +87,15 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     s1.add(new THREE.Line(railGeo, amberLineMat));
     const pulse3d = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), amberMat);
     s1.add(pulse3d);
-    s1.position.copy(W[1]).add(new THREE.Vector3(-4.5, 0, 0));
+    s1.position.copy(W[1]).add(new THREE.Vector3(-9, -1, -5));
     s1.rotation.y = 0.35;
     scene.add(s1);
 
     /* ---------- station 2: the job queue ---------- */
     const s2 = new THREE.Group();
     const qCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-6, -1.5, 2), new THREE.Vector3(-2, 0.5, -1),
-      new THREE.Vector3(2, -0.5, 1), new THREE.Vector3(6, 1.2, -2)
+      new THREE.Vector3(-4.5, -1.5, 2), new THREE.Vector3(-1.5, 0.5, -1),
+      new THREE.Vector3(1.5, -0.5, 1), new THREE.Vector3(4.5, 1.2, -2)
     ]);
     s2.add(new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(qCurve.getPoints(60)),
@@ -120,10 +120,10 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       ),
       amberLineMat
     );
-    dlq.position.set(6.5, -1.5, 0);
+    dlq.position.set(4, -3.5, -2);
     dlq.rotation.x = Math.PI / 2.4;
     s2.add(dlq);
-    s2.position.copy(W[2]).add(new THREE.Vector3(-4.5, 0, 0));
+    s2.position.copy(W[2]).add(new THREE.Vector3(-9, 0, -4));
     s2.rotation.y = -0.3;
     scene.add(s2);
 
@@ -149,7 +149,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     s3.add(bot);
     // orbital rings of skill satellites
     const orbits = [];
-    [[3.4, 0.4, 5], [4.4, -0.5, 4], [5.4, 0.9, 3]].forEach(([r, tilt, n]) => {
+    [[2.4, 0.4, 5], [3.2, -0.5, 4], [4.0, 0.9, 3]].forEach(([r, tilt, n]) => {
       const o = new THREE.Group();
       o.add(new THREE.LineLoop(
         new THREE.BufferGeometry().setFromPoints(
@@ -169,7 +169,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       orbits.push(o);
       s3.add(o);
     });
-    s3.position.copy(W[3]).add(new THREE.Vector3(-4.2, 0.5, 0));
+    s3.position.copy(W[3]).add(new THREE.Vector3(-14, 0.5, -8));
     scene.add(s3);
 
     /* ---------- station 4: the beacon ---------- */
@@ -192,7 +192,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       rings.push(ring);
       s4.add(ring);
     }
-    s4.position.copy(W[4]).add(new THREE.Vector3(4.5, -0.5, 0));
+    s4.position.copy(W[4]).add(new THREE.Vector3(7, -0.5, -2));
     scene.add(s4);
 
     /* ---------- camera path through the stations ---------- */
@@ -201,8 +201,9 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     const path = new THREE.CatmullRomCurve3(camPts, false, 'catmullrom', 0.4);
 
     /* section-anchor mapping lives in the classic script (window.scrollParam),
-       shared with the station rail */
-    const scrollParam = window.scrollParam;
+       shared with the station rail; if rail.js ever failed to load, hold the
+       camera at station 0 instead of throwing inside every rAF tick */
+    const scrollParam = window.scrollParam || function () { return 0; };
 
     function smooth(t) { return t * t * (3 - 2 * t); }
 
@@ -324,7 +325,7 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
 
       rings.forEach((r, i) => {
         const ph = (t * 0.45 + i / 3) % 1;
-        r.scale.setScalar(0.4 + ph * 4);
+        r.scale.setScalar(0.4 + ph * 2.6);
         r.material.opacity = 0.55 * (1 - ph);
       });
 

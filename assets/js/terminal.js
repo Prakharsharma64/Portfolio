@@ -55,10 +55,17 @@
   window.closeTerminal = closeTerm;
   window.openTerminal = openTerm;
 
+  function scrollBehavior() {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var off = false;
+    try { off = localStorage.getItem('motion-off') === '1'; } catch (e) { }
+    return (reduce || off) ? 'auto' : 'smooth';
+  }
+
   function fly(name) {
     var el = name === 'hero' ? document.querySelector('.hero') : document.getElementById(name);
     if (!el) { print("unknown station: " + name + ". stations: hero, work, experience, skills, contact"); return; }
-    el.scrollIntoView({ behavior: 'smooth' });
+    el.scrollIntoView({ behavior: scrollBehavior() });
     print('flying to ' + name);
   }
 
@@ -117,9 +124,11 @@
 
   document.getElementById('term-open').addEventListener('click', openTerm);
 
+  /* Ctrl+backquote: a bare printable key would violate WCAG 2.1.4
+     (speech input and tremor users can fire it accidentally) */
   document.addEventListener('keydown', function (e) {
     var tag = document.activeElement && document.activeElement.tagName;
-    if ((e.key === '`' || e.key === '~') && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+    if ((e.key === '`' || e.key === '~') && e.ctrlKey && tag !== 'INPUT' && tag !== 'TEXTAREA') {
       e.preventDefault();
       term.hidden ? openTerm() : closeTerm();
     } else if (e.key === 'Escape' && !term.hidden) {
