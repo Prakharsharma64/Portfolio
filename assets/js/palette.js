@@ -11,11 +11,16 @@
     try { return localStorage.getItem('motion-off') === '1'; } catch (e) { return false; }
   }
 
+  function scrollBehavior() {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return (reduce || motionOff()) ? 'auto' : 'smooth';
+  }
+
   function fly(name) {
     return function () {
       closePal();
       var el = name === 'hero' ? document.querySelector('.hero') : document.getElementById(name);
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: scrollBehavior() });
     };
   }
 
@@ -65,6 +70,7 @@
   function note(li, text) {
     var s = li.querySelector('.pal__note') || li.appendChild(document.createElement('span'));
     s.className = 'pal__note';
+    s.setAttribute('role', 'status');
     s.textContent = text;
     setTimeout(function () { s.remove(); }, 1400);
   }
@@ -92,6 +98,8 @@
     if (!shown.length) {
       var d = document.createElement('li');
       d.className = 'pal__empty';
+      d.setAttribute('role', 'option');
+      d.setAttribute('aria-disabled', 'true');
       d.textContent = 'No matching command';
       list.appendChild(d);
     }
@@ -101,9 +109,11 @@
   function mark() {
     Array.prototype.forEach.call(list.children, function (li, i) {
       li.classList.toggle('act', i === active && shown.length > 0);
-      li.setAttribute('aria-selected', i === active ? 'true' : 'false');
+      if (shown.length) li.setAttribute('aria-selected', i === active ? 'true' : 'false');
     });
-    list.setAttribute('aria-activedescendant', shown.length ? 'pal-i-' + active : '');
+    /* the combobox input holds focus, so it carries aria-activedescendant */
+    if (shown.length) input.setAttribute('aria-activedescendant', 'pal-i-' + active);
+    else input.removeAttribute('aria-activedescendant');
     var el = list.children[active];
     if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
   }
@@ -129,10 +139,19 @@
   function closePal() {
     if (pal.hidden) return;
     input.blur();
+    input.removeAttribute('aria-activedescendant');
     pal.hidden = true;
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
   window.closePalette = closePal;
+
+  /* the visible shortcut label defaults to "Ctrl K"; swap to the command
+     glyph on Mac-like platforms and keep the accessible name in sync */
+  var opener = document.getElementById('pal-open');
+  if (/Mac|iPhone|iPad|iPod/.test(navigator.platform)) {
+    opener.textContent = '⌘K';
+    opener.setAttribute('aria-label', 'Open command palette (⌘K)');
+  }
 
   input.addEventListener('input', function () { render(input.value.trim()); });
 

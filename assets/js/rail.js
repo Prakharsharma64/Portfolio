@@ -30,11 +30,17 @@ window.scrollParam = (function () {
     dots[i].setAttribute('aria-current', 'true');
     current = i;
   }
+  function scrollBehavior() {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var off = false;
+    try { off = localStorage.getItem('motion-off') === '1'; } catch (e) { }
+    return (reduce || off) ? 'auto' : 'smooth';
+  }
   dots.forEach(function (b) {
     b.addEventListener('click', function () {
       var t = b.getAttribute('data-target');
       var el = t === 'hero' ? document.querySelector('.hero') : document.getElementById(t);
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: scrollBehavior() });
     });
   });
   var queued = false;

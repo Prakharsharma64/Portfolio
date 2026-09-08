@@ -8,6 +8,12 @@
   --amber: #F2A33C;
   --amber-deep: #C77E1F;
   --amber-wash: rgba(242, 163, 60, 0.08);
+  --ink-faint: #7A808A;
+  --ink-soft: #9AA0A9;
+  --line-strong: #3A3F48;
+  --underline: #454A53;
+  --flow: #7A808A; /* lifted from #4A505A: connectors carry sequence meaning, need 3:1 (SC 1.4.11) */
+  --on-amber: #17120A;
   --display: 'Bricolage Grotesque', 'Arial Narrow', sans-serif;
   --body: 'Instrument Sans', system-ui, sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, monospace;
@@ -25,6 +31,21 @@ html {
   scrollbar-color: #33373F var(--bg);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* JS-only triggers stay hidden until the inline script tags <html class="js"> */
+html:not(.js) #pal-open,
+html:not(.js) .foot__term,
+html:not(.js) #run-sim,
+html:not(.js) #rail,
+html:not(.js) .ask {
+  display: none;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -37,13 +58,13 @@ body {
 
 ::selection {
   background: var(--amber);
-  color: #17120A;
+  color: var(--on-amber);
 }
 
 a {
   color: var(--text);
   text-decoration: underline;
-  text-decoration-color: #454A53;
+  text-decoration-color: var(--underline);
   text-underline-offset: 3px;
   transition: text-decoration-color .15s;
 }
@@ -69,7 +90,7 @@ a:hover {
   left: -9999px;
   top: 0;
   background: var(--amber);
-  color: #17120A;
+  color: var(--on-amber);
   padding: 10px 16px;
   font-weight: 600;
   z-index: 100;
@@ -135,7 +156,7 @@ header {
   font-family: var(--body);
   font-size: .95rem;
   font-weight: 600;
-  color: #17120A;
+  color: var(--on-amber);
   background: var(--amber);
   border: 0;
   border-radius: 6px;
@@ -161,7 +182,7 @@ header {
 
 .btn--ghost:hover {
   background: var(--raise);
-  border-color: #3A3F48;
+  border-color: var(--line-strong);
 }
 
 .nav .btn {
@@ -250,7 +271,7 @@ h1 em {
 }
 
 .d-box--llm {
-  stroke: #3A3F48;
+  stroke: var(--line-strong);
 }
 
 .d-label {
@@ -261,12 +282,12 @@ h1 em {
 
 .d-side {
   font-family: var(--mono);
-  font-size: 10.5px;
-  fill: #7A808A;
+  font-size: 11.5px;
+  fill: var(--ink-faint);
 }
 
 .d-flow {
-  stroke: #4A505A;
+  stroke: var(--flow);
   stroke-width: 1.5;
   fill: none;
 }
@@ -308,10 +329,12 @@ h1 em {
   font-size: .8rem;
   line-height: 1.7;
   text-align: left;
+  /* reserve the full run height so the centered hero grid never shifts mid-run */
+  min-height: 10.5em;
 }
 
 .diagram__log-head {
-  color: #7A808A;
+  color: var(--ink-faint);
 }
 
 .diagram__log-line {
@@ -549,7 +572,7 @@ h2 {
   margin-top: 14px;
   font-family: var(--mono);
   font-size: .85rem;
-  color: #7A808A;
+  color: var(--ink-faint);
 }
 
 .xp__body {
@@ -611,7 +634,7 @@ h2 {
 
 .feature .kind {
   margin-top: 10px;
-  color: #7A808A;
+  color: var(--ink-faint);
   font-size: .95rem;
 }
 
@@ -632,13 +655,13 @@ h2 {
   margin-top: 18px;
   font-family: var(--mono);
   font-size: .85rem;
-  color: #7A808A;
+  color: var(--ink-faint);
 }
 
 .feature .stack {
   margin-top: 8px;
   font-size: .9rem;
-  color: #7A808A;
+  color: var(--ink-faint);
 }
 
 .more {
@@ -760,8 +783,16 @@ h2 {
   font-family: var(--mono);
   font-size: .78rem;
   font-weight: 400;
-  color: #7A808A;
+  color: var(--ink-faint);
   margin-left: 10px;
+}
+
+@media (max-width: 640px) {
+  .ask__tag {
+    display: block;
+    margin-left: 0;
+    margin-top: 2px;
+  }
 }
 
 .ask__form {
@@ -783,7 +814,7 @@ h2 {
 }
 
 #ask-in::placeholder {
-  color: #7A808A;
+  color: var(--ink-faint);
 }
 
 .ask__out {
@@ -814,7 +845,7 @@ footer {
 
 .nav__kbd:hover {
   color: var(--text);
-  border-color: #3A3F48;
+  border-color: var(--line-strong);
 }
 
 #pal {
@@ -833,6 +864,12 @@ footer {
   overflow: hidden;
 }
 
+/* the input's own outline is suppressed; the panel border is the focus indicator
+   (mirrors the terminal treatment) */
+.pal__panel:focus-within {
+  border-color: var(--amber-deep);
+}
+
 #pal-in {
   width: 100%;
   background: none;
@@ -846,14 +883,14 @@ footer {
 }
 
 #pal-in::placeholder {
-  color: #7A808A;
+  color: var(--ink-faint);
 }
 
 #pal-list {
   list-style: none;
   margin: 0;
   padding: 6px;
-  max-height: 320px;
+  max-height: min(432px, 55vh);
   overflow-y: auto;
 }
 
@@ -924,7 +961,8 @@ footer {
   height: 8px;
   border-radius: 50%;
   background: var(--raise);
-  border: 1px solid var(--line);
+  /* border lifted from --line: non-current dots need 3:1 against the page (SC 1.4.11) */
+  border: 1px solid var(--ink-faint);
   transition: transform .2s, background .2s, border-color .2s;
 }
 
@@ -955,14 +993,11 @@ footer {
   opacity: 1;
 }
 
-/* below 1200px the side gutter shrinks: tuck the rail into the wrap padding */
+/* below 1200px the side gutter shrinks: tuck the rail into the wrap padding,
+   keeping the full 24x24 hit area (WCAG 2.5.8 minimum target size) */
 @media (max-width: 1200px) {
   #rail {
-    right: 4px;
-  }
-
-  #rail button {
-    width: 16px;
+    right: 0;
   }
 }
 
@@ -1040,9 +1075,9 @@ footer {
   border: 0;
   padding: 0;
   font: inherit;
-  color: #9AA0A9;
+  color: var(--ink-soft);
   text-decoration: underline;
-  text-decoration-color: #454A53;
+  text-decoration-color: var(--underline);
   text-underline-offset: 3px;
   cursor: pointer;
   transition: text-decoration-color .15s;
@@ -1058,11 +1093,18 @@ footer {
   flex-wrap: wrap;
   gap: 10px;
   font-size: .88rem;
-  color: #7A808A;
+  color: var(--ink-faint);
 }
 
 .foot a {
-  color: #9AA0A9;
+  color: var(--ink-soft);
+}
+
+.foot__links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: baseline;
 }
 
 .foot__beat {
@@ -1130,8 +1172,23 @@ footer {
   }
 }
 
+/* phones keep the four jump links: without them scroll is the only wayfinding */
 @media (max-width: 640px) {
-  .nav__links a:not(.btn) {
-    display: none;
+  .nav {
+    flex-wrap: wrap;
+    height: auto;
+    /* block padding only: .nav shares the element with .wrap, whose 24px side padding must survive */
+    padding-top: 10px;
+    padding-bottom: 10px;
+    row-gap: 2px;
+  }
+
+  .nav__links {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .nav__links a {
+    font-size: .88rem;
   }
 }
