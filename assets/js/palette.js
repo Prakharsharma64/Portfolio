@@ -65,6 +65,7 @@
         if (off) {
           if (window.killWorld) window.killWorld();
           if (window.killReveals) window.killReveals();
+          if (window.killWork) window.killWork();
           note(li, 'motion off');
         } else {
           location.reload();

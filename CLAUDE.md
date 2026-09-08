@@ -68,6 +68,9 @@ read and follow them:
   fly-to-station, copy email, motion toggle that calls the kill switches)
 - `assets/js/pipeline.js` - "Run a simulated dispatch": steps the hero diagram and
   writes the labeled log; pauses/resumes `window.pulseAnim` around a run
+- `assets/js/work.js` - Work section life: traveling pulse on each feature diagram
+  (IntersectionObserver pauses off-screen), amber breathing on `#work .d-box--llm`,
+  one-shot width-locked count-up on `.stats__n`; `window.killWork` for the motion toggle
 - `assets/js/ask.js` - "Ask my portfolio": two deterministic engines, no LLM; every
   answer restates copy already on the page. Engine 1: precomputed MiniLM word vectors
   (`assets/data/ask-index.json`, lazy-fetched on first input focus) scored as
@@ -110,7 +113,8 @@ read and follow them:
 
 - `scrollParam` (rail.js) -> world.js camera; the shared scroll mapping
 - `pulseAnim` (reveals.js) -> pipeline.js pauses/plays it during a simulated run
-- `killReveals` (reveals.js), `killWorld` (world.js) -> palette.js motion toggle
+- `killReveals` (reveals.js), `killWorld` (world.js), `killWork` (work.js) ->
+  palette.js motion toggle
 - `closePalette` (palette.js) <-> `closeTerminal` / `openTerminal` (terminal.js) -
   mutual exclusion between the two overlays; every consumer guards with `if (window.X)`
 

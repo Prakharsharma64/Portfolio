@@ -145,9 +145,11 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
     /* ---------- station 1: the pipeline in 3D ---------- */
     const s1 = new THREE.Group();
     const stages = 4;
+    const stageBoxes = [];
     for (let i = 0; i < stages; i++) {
       const b = edgedBox(2.4, 1.1, 1.1);
       b.position.x = (i - (stages - 1) / 2) * 3.4;
+      stageBoxes.push(b);
       s1.add(b);
     }
     const railGeo = new THREE.BufferGeometry().setFromPoints([
@@ -155,8 +157,12 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
       new THREE.Vector3((stages - 1) / 2 * 3.4, 0, 0)
     ]);
     s1.add(new THREE.Line(railGeo, amberLineMat));
-    const pulse3d = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), amberMat);
-    s1.add(pulse3d);
+    const packets = [];
+    for (let i = 0; i < 3; i++) {
+      const p = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), amberMat);
+      packets.push(p);
+      s1.add(p);
+    }
     s1.position.copy(W[1]).add(new THREE.Vector3(-7, -2.5, -6));
     s1.rotation.y = 0.35;
     scene.add(s1);
@@ -512,9 +518,19 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !motionOff
         }
       }
 
+      /* pipeline: staggered packets; stages bump as a packet passes through */
       pulsePhase += dt * (0.22 + prox(1) * 0.34);
-      const pu = pulsePhase % 1;
-      pulse3d.position.x = (pu - 0.5) * (stages - 1) * 3.4;
+      const spanX = (stages - 1) * 3.4;
+      packets.forEach((p, i) => {
+        const ph = (pulsePhase + i / packets.length) % 1;
+        p.position.x = (ph - 0.5) * spanX;
+      });
+      stageBoxes.forEach((b, j) => {
+        const bx = (j - (stages - 1) / 2) * 3.4;
+        let bump = 0;
+        packets.forEach((p) => { bump += Math.max(0, 1 - Math.abs(p.position.x - bx) / 1.2); });
+        b.scale.setScalar(1 + Math.min(bump, 1) * 0.1);
+      });
 
       jobPhase += dt * (0.06 + prox(2) * 0.09);
       jobs.forEach((c, i) => {

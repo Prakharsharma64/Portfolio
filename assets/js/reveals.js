@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ============ scroll reveals, once per element ============ */
   var targets = document.querySelectorAll(
-    '.feature, .more__grid article, .xp__meta, .xp__body p, .skillsfile, .contact__inner'
+    '.feature, .xp__meta, .xp__body p, .skillsfile, .contact__inner'
   );
   targets.forEach(function (el) { el.classList.add('reveal-target'); });
   anime.set(targets, { opacity: 0, translateY: 18 });
@@ -138,6 +138,24 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
   targets.forEach(function (t) { io.observe(t); });
+
+  /* the "Also shipped" cards cascade as one group instead of popping solo */
+  var gridItems = document.querySelectorAll('.more__grid article');
+  gridItems.forEach(function (el) { el.classList.add('reveal-target'); });
+  anime.set(gridItems, { opacity: 0, translateY: 18 });
+  var gio = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        anime({
+          targets: gridItems, opacity: [0, 1], translateY: [18, 0],
+          duration: 650, delay: anime.stagger(90), easing: 'cubicBezier(.16,1,.3,1)'
+        });
+        gio.disconnect();
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  var moreGrid = document.querySelector('.more__grid');
+  if (moreGrid) gio.observe(moreGrid);
 
   /* section heading underlines */
   var h2io = new IntersectionObserver(function (entries) {
@@ -170,7 +188,9 @@ document.addEventListener('DOMContentLoaded', function () {
     uiDead = true;
     io.disconnect();
     h2io.disconnect();
+    gio.disconnect();
     anime.set(targets, { opacity: 1, translateY: 0 });
+    anime.set(gridItems, { opacity: 1, translateY: 0 });
     document.querySelectorAll('h2').forEach(function (h) { h.classList.add('seen'); });
     if (window.pulseAnim) window.pulseAnim.pause();
     pb.style.transform = '';
